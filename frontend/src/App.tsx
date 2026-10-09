@@ -123,7 +123,7 @@ function App() {
   const productsRef = useRef<HTMLInputElement>(null)
   const equationSectionRef = useRef<HTMLElement>(null)
 
-  const getInputWidth = (value: string) => `${Math.max(value.length + 1, 8)}ch`
+  const getInputWidth = (value: string) => `${Math.max(value.replace(/_/g, '').length + 1, 8)}ch`
 
   const clearResults = () => {
     setBalancedResult('')
@@ -226,6 +226,42 @@ function App() {
     })
   }
 
+  const removePreviousCharacter = () => {
+    const input = activeInput === 'reactants' ? reactantsRef.current : productsRef.current
+    if (!input) return
+
+    const start = input.selectionStart ?? input.value.length
+    const end = input.selectionEnd ?? start
+    if (start === 0 && end === 0) return
+
+    const deleteStart = start === end ? start - 1 : start
+    const nextValue = `${input.value.slice(0, deleteStart)}${input.value.slice(end)}`
+    const update = activeInput === 'reactants' ? setReactants : setProducts
+    update(nextValue)
+    clearResults()
+
+    requestAnimationFrame(() => {
+      input.focus()
+      input.setSelectionRange(deleteStart, deleteStart)
+    })
+  }
+
+  const focusInput = (name: 'reactants' | 'products') => {
+    setActiveInput(name)
+    setKeyboardOpen(true)
+    requestAnimationFrame(() => {
+      const input = name === 'reactants' ? reactantsRef.current : productsRef.current
+      input?.focus()
+      const cursor = input?.value.length ?? 0
+      input?.setSelectionRange(cursor, cursor)
+    })
+  }
+
+  const moveBetweenInputs = (direction: 'previous' | 'next') => {
+    if (direction === 'previous' && activeInput === 'products') focusInput('reactants')
+    if (direction === 'next' && activeInput === 'reactants') focusInput('products')
+  }
+
   const renderInput = (
     value: string,
     setValue: (nextValue: string) => void,
@@ -236,11 +272,11 @@ function App() {
     <label className={`formula-editor ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
       <span className="sr-only">{name === 'reactants' ? 'Reactivos' : 'Productos'}</span>
       <span className={`formula-preview ${align === 'right' ? 'text-right' : 'text-left'}`}>
-        {value ? <FormulaPreview value={value} /> : <span className="text-slate-500">{name === 'reactants' ? 'Reactivos' : 'Productos'}</span>}
+        {value && <FormulaPreview value={value} />}
       </span>
       <input
         ref={inputRef}
-        className="formula-input formula-input-editable"
+        className={`formula-input formula-input-editable ${align === 'right' ? 'text-right' : 'text-left'}`}
         style={{ width: getInputWidth(value) }}
         value={value}
         onFocus={() => {
@@ -253,7 +289,7 @@ function App() {
           clearResults()
         }}
         aria-label={name === 'reactants' ? 'Reactivos' : 'Productos'}
-        placeholder={name === 'reactants' ? 'Reactivos' : 'Productos'}
+        placeholder=""
         spellCheck="false"
       />
     </label>
@@ -301,7 +337,7 @@ function App() {
 
           <div className="min-w-0 xl:col-start-2 xl:row-start-1">
             <form onSubmit={handleSubmit} className="w-full">
-              <div className="equation-shell flex w-full items-center justify-center gap-3 border-y-2 border-slate-400 bg-white/65 py-8 sm:gap-7 sm:py-12">
+              <div className="equation-shell flex w-full items-center justify-center gap-3 border-y-2 border-slate-400 py-8 sm:gap-7 sm:py-12">
                 {renderInput(reactants, setReactants, 'reactants', reactantsRef, 'right')}
                 <span className="shrink-0 text-teal-700" aria-hidden="true">
                   <svg className="size-8 sm:size-11" viewBox="0 0 48 24" fill="none">
@@ -386,6 +422,12 @@ function App() {
                     <p className="mt-1 text-xs text-slate-600">Campo activo: {activeInput === 'reactants' ? 'reactivos' : 'productos'}</p>
                   </div>
                   <button type="button" className="keyboard-close" onClick={() => setKeyboardOpen(false)} aria-label="Cerrar teclado">&#215;</button>
+                </div>
+                <div className="element-controls mb-4" aria-label="Controles del input">
+                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => insertElement('+')} title="Agregar signo más" aria-label="Agregar signo más">+</button>
+                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('previous')} title="Ir al input anterior" aria-label="Ir al input anterior">&#8592;</button>
+                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('next')} title="Ir al input siguiente" aria-label="Ir al input siguiente">&#8594;</button>
+                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={removePreviousCharacter} title="Borrar carácter anterior" aria-label="Borrar carácter anterior">&#9003;</button>
                 </div>
                 <div className="mb-4 flex flex-wrap gap-x-3 gap-y-2" aria-label="Leyenda de familias de elementos">
                   {elementGroupLabels.map(([group, label]) => (

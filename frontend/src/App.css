@@ -5,11 +5,11 @@
 }
 
 .formula-editor {
-  @apply relative flex min-w-0 flex-1;
+  @apply relative flex min-w-0 flex-1 rounded-xl border-2 border-slate-300 bg-white px-3 py-2 transition focus-within:border-teal-700 focus-within:ring-4 focus-within:ring-teal-300/50;
 }
 
 .formula-preview {
-  @apply pointer-events-none absolute inset-0 min-w-0 overflow-hidden whitespace-nowrap text-2xl font-medium tracking-tight text-slate-950 sm:text-4xl;
+  @apply pointer-events-none absolute inset-0 min-w-0 overflow-hidden whitespace-nowrap px-3 py-2 text-2xl font-medium tracking-tight text-slate-950 sm:text-4xl;
   font-family: var(--font-display);
 }
 
@@ -18,7 +18,8 @@
 }
 
 .formula-input-editable {
-  @apply relative z-10 text-transparent caret-teal-700 selection:bg-teal-100;
+  font-family: var(--font-display);
+  @apply relative z-10 text-transparent caret-teal-700 placeholder:text-transparent selection:bg-teal-600/50;
 }
 
 .keyboard-toggle,
@@ -28,6 +29,14 @@
 
 .keyboard-close {
   @apply grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-lg font-normal text-slate-600 hover:border-teal-300 hover:text-teal-700;
+}
+
+.element-controls {
+  @apply flex items-center gap-2 border-y border-slate-100 py-2;
+}
+
+.element-control {
+  @apply grid size-9 place-items-center rounded-lg border border-slate-200 bg-stone-50 text-lg font-semibold text-slate-700 transition hover:border-teal-400 hover:bg-teal-50 hover:text-teal-800 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
 }
 
 .periodic-keyboard {
