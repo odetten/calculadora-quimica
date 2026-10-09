@@ -1,5 +1,18 @@
 # React + TypeScript + Vite
 
+## Desglose del balanceo con Llama
+
+El frontend envía la ecuación original y el resultado del balanceador al endpoint
+`POST /ask` del backend. Inicia el backend desde la carpeta `backend`:
+
+```sh
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+En otra terminal, ejecuta `npm run dev` desde `frontend`. Si el backend usa
+otra dirección, configura `VITE_API_URL` con la URL base antes de iniciar Vite.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
