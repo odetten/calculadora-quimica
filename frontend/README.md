@@ -1,17 +1,45 @@
-# React + TypeScript + Vite
+# Química: balanceador, cursos e IA
 
-## Desglose del balanceo con Llama
+## Configuración
 
-El frontend envía la ecuación original y el resultado del balanceador al endpoint
-`POST /ask` del backend. Inicia el backend desde la carpeta `backend`:
+La base existente debe llamarse `quimica` y tener las tablas definidas en `quimica.sql`.
+No vuelvas a ejecutar ese SQL si la base ya tiene datos: el archivo comienza borrando
+y recreando la base.
 
-```sh
-pip install -r requirements.txt
+En una terminal de PowerShell, configura las credenciales del backend:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+Edita `backend/.env` con el usuario/contraseña de MySQL y reemplaza `JWT_SECRET` por
+una cadena aleatoria de al menos 16 caracteres. La aplicación usa `DB_NAME=quimica`.
+
+Instala y ejecuta la API desde `backend`:
+
+```powershell
+Set-Location backend
+python -m pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-En otra terminal, ejecuta `npm run dev` desde `frontend`. Si el backend usa
-otra dirección, configura `VITE_API_URL` con la URL base antes de iniciar Vite.
+Ollama debe estar iniciado y tener el modelo disponible:
+
+```powershell
+ollama pull llama3.1:8b
+```
+
+En otra terminal inicia la web:
+
+```powershell
+Set-Location frontend
+npm install
+npm run dev
+```
+
+La web permite balancear ecuaciones y consultar la IA sin iniciar sesión. Registro,
+cursos, progreso e historial requieren que la API pueda conectarse a MySQL.
+Para otra URL de API, define `VITE_API_URL` antes de iniciar Vite.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

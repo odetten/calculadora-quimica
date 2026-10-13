@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import './App.css'
 import { balanceEquation } from './chemistry.ts'
 import { extractElements } from './elements.ts'
+import { LearningHub } from './LearningHub.tsx'
 
 const periodicRows: Array<Array<string | null>> = [
   ['H', ...Array(16).fill(null), 'He'],
@@ -154,6 +155,8 @@ function App() {
     setMessage('Balance encontrado con los menores coeficientes enteros.')
     setExplanationLoading(true)
     setApplicationsLoading(true)
+    let explanationText = ''
+    let applicationsText = ''
 
     // 1) Explicación paso a paso
     try {
@@ -162,7 +165,8 @@ function App() {
         `Solución del sistema (solo para tu uso interno, no la muestres antes del último paso): ${result}`,
         'Empieza tu respuesta directamente con la línea "Ecuación original". No hagas preguntas.',
       ].join('\n'))
-      setExplanation(cleanExplanation(answer))
+      explanationText = cleanExplanation(answer)
+      setExplanation(explanationText)
     } catch (error) {
       setExplanationError(
         error instanceof Error
@@ -186,7 +190,8 @@ function App() {
         ...elements.map(({ symbol, name }) => `- ${symbol} (${name})`),
         'Describe las aplicaciones de cada uno de estos elementos y de ningún otro. Empieza directamente con el primer elemento. No hagas preguntas.',
       ].join('\n'))
-      setApplications(cleanExplanation(answer))
+      applicationsText = cleanExplanation(answer)
+      setApplications(applicationsText)
     } catch (error) {
       setApplicationsError(
         error instanceof Error
@@ -195,6 +200,21 @@ function App() {
       )
     } finally {
       setApplicationsLoading(false)
+    }
+
+    const token = localStorage.getItem('quimica-token')
+    if (token) {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      try {
+        const response = await fetch(`${apiUrl.replace(/\/$/, '')}/history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ecuacion: equation, resultado: result, explicacion: explanationText, aplicaciones: applicationsText }),
+        })
+        if (response.ok) window.dispatchEvent(new Event('chemistry-history-updated'))
+      } catch {
+        // El resultado del balanceo sigue disponible aunque no se guarde el historial.
+      }
     }
   }
 
@@ -297,6 +317,7 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-transparent text-slate-900">
+      <LearningHub />
       {/* <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-7 sm:px-10">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-xl bg-teal-700 text-sm font-bold text-white">Q</span>

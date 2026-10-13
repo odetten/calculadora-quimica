@@ -51,7 +51,7 @@ const normalizeFormula = (formula: string) => formula
   .replace(/_/g, '')
   .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (digit) => subscriptDigits[digit])
 
-const formatFormulaForDisplay = (formula: string) => formula.replace(/([A-Za-z\)])(\d+)/g, '$1_$2')
+const formatFormulaForDisplay = (formula: string) => formula.replace(/([A-Za-z)])(\d+)/g, '$1_$2')
 const removeLeadingCoefficient = (compound: string) => compound.replace(/^\d+(?:\.\d+)?/, '')
 
 const parseCompound = (compound: string): Record<string, number> => {

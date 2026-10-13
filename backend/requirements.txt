@@ -1,3 +1,7 @@
 fastapi
 ollama
 uvicorn[standard]
+mysql-connector-python
+PyJWT
+bcrypt
+python-dotenv

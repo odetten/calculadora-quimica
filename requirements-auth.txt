@@ -1,0 +1,5 @@
+# Dependencias nuevas (agrégalas a tu requirements.txt)
+mysql-connector-python
+PyJWT
+bcrypt
+python-dotenv

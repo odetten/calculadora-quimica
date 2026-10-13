@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 MODEL = "llama3.1:8b"
 BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from routes_auth import router as auth_router
+from routes_courses import router as courses_router
+from routes_history import router as history_router
 
 
 def load_prompt(*candidates: str) -> str:
@@ -46,9 +53,13 @@ app.add_middleware(
         "http://127.0.0.1:5173",
     ],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+app.include_router(auth_router)
+app.include_router(courses_router)
+app.include_router(history_router)
 
 
 class PromptRequest(BaseModel):
