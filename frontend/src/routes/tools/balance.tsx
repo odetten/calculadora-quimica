@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import './balance.css'
 import { balanceEquation } from './chemistry.ts'
 import { extractElements } from './elements.ts'
+import Header from '../../components/global/header.tsx'
 
 const periodicRows: Array<Array<string | null>> = [
   ['H', ...Array(16).fill(null), 'He'],
@@ -297,13 +298,7 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-transparent text-slate-900">
-      {/* <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-7 sm:px-10">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-xl bg-teal-700 text-sm font-bold text-white">Q</span>
-          <span className="font-display text-lg font-semibold tracking-tight">Quimica Clara</span>
-        </div>
-        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-600">Balanceador</span>
-      </header> */}
+      <Header />
 
       <section ref={equationSectionRef} className="equation-section mx-auto flex min-h-[calc(100vh-104px)] w-full max-w-[1600px] flex-col justify-center px-6 pb-16 pt-10 sm:px-10">
         <div className="mb-14 flex w-full flex-col items-center text-center">

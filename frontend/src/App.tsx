@@ -1,5 +1,6 @@
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import BalanceCalculator from './routes/tools/balance.tsx';
+import Splash from './components/global/splash.tsx';
 
 const router = createBrowserRouter([
   {
@@ -10,7 +11,10 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <RouterProvider router={router} />
+    <>
+      <RouterProvider router={router} />
+      <Splash />
+    </>
   );
 }
 
