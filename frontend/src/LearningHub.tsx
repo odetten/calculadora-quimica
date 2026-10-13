@@ -213,7 +213,7 @@ export function LearningHub() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-6 pt-5 sm:px-10" aria-label="Cuenta y aprendizaje">
+    <section id="servicios" className="mx-auto w-full max-w-[1440px] scroll-mt-20 px-6 pt-5 sm:px-10" aria-label="Cuenta y aprendizaje">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Química · Aprendizaje</p>
