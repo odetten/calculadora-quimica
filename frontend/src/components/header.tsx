@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
+type HeaderProps = {
+  isAuthenticated?: boolean
+  onLoginClick?: () => void
+  onLogoutClick?: () => void
+  onNavigate?: (target: 'courses' | 'balanceador') => void
+}
+
 const links = [
-  { href: "#inicio", label: "Inicio" },
-  { href: "#servicios", label: "Servicios" },
-  { href: "#balanceador", label: "Balanceador" },
+  { href: "#cursos", label: "Cursos", target: 'courses' as const },
+  { href: "#balanceador", label: "Balanceador", target: 'balanceador' as const },
 ];
 
-export default function Header() {
+export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onNavigate }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false)
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -44,11 +51,67 @@ export default function Header() {
               <a
                 key={link.href}
                 href={link.href}
+                onClick={(event) => {
+                  if (onNavigate) {
+                    event.preventDefault()
+                    onNavigate(link.target)
+                  }
+                }}
                 className="text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
               >
                 {link.label}
               </a>
             ))}
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setConfirmLogout((open) => !open)}
+                  aria-expanded={confirmLogout}
+                  aria-controls="logout-confirmation"
+                  className="text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
+                >
+                  Cerrar sesión
+                </button>
+                {confirmLogout && (
+                  <div
+                    id="logout-confirmation"
+                    role="group"
+                    aria-label="Confirmar cierre de sesión"
+                    className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-4 text-left shadow-lg"
+                  >
+                    <p className="text-sm text-gray-800">¿De verdad quieres cerrar la sesión?</p>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmLogout(false)}
+                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConfirmLogout(false)
+                          onLogoutClick?.()
+                        }}
+                        className="rounded-lg bg-teal-700 px-3 py-1.5 text-sm text-white hover:bg-teal-800"
+                      >
+                        Sí, cerrar sesión
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onLoginClick}
+                className="text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
+              >
+                Iniciar sesión
+              </button>
+            )}
           </nav>
         </div>
       </header>

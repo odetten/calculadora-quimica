@@ -27,7 +27,7 @@ export default function Splash() {
         <circle className="splash-bubble splash-bubble-2" cx="36" cy="50" r="2" fill="#0f766e" />
         <circle className="splash-bubble splash-bubble-3" cx="32" cy="52" r="1.6" fill="#0f766e" />
       </svg>
-      <p className="splash-title">Quimica Clara</p>
+      <p className="splash-title">My Chem</p>
       <div className="splash-bar" aria-hidden="true">
         <span />
       </div>

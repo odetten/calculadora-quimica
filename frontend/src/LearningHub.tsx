@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 const TOKEN_KEY = 'quimica-token'
@@ -33,15 +33,10 @@ function shuffled<T>(items: T[]): T[] {
   return result
 }
 
-export function LearningHub() {
+export function LearningHub({ onAuthChange }: { onAuthChange: (authenticated: boolean) => void }) {
   const [user, setUser] = useState<User | null>(null)
   const [authChecked, setAuthChecked] = useState(() => !localStorage.getItem(TOKEN_KEY))
-  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [view, setView] = useState<'courses' | 'history'>('courses')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [level, setLevel] = useState('prepa')
   const [courses, setCourses] = useState<Course[]>([])
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [problems, setProblems] = useState<Problem[]>([])
@@ -55,16 +50,21 @@ export function LearningHub() {
   const [matched, setMatched] = useState<number[]>([])
   const [openCards, setOpenCards] = useState<MemoryCard[]>([])
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) return
     apiRequest<User>('/auth/me')
-      .then(setUser)
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .then((currentUser) => {
+        setUser(currentUser)
+        onAuthChange(true)
+      })
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY)
+        onAuthChange(false)
+      })
       .finally(() => setAuthChecked(true))
-  }, [])
+  }, [onAuthChange])
 
   useEffect(() => {
     if (!user) return
@@ -103,24 +103,6 @@ export function LearningHub() {
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'No se pudo abrir el curso.')
-    }
-  }
-
-  const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setBusy(true)
-    setError('')
-    try {
-      const path = mode === 'login' ? '/auth/login' : '/auth/register'
-      const payload = mode === 'login' ? { email, password } : { nombre: name, email, password, nivel: level }
-      const result = await apiRequest<{ token: string; user: User }>(path, { method: 'POST', body: JSON.stringify(payload) })
-      localStorage.setItem(TOKEN_KEY, result.token)
-      setUser(result.user)
-      setPassword('')
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'No se pudo iniciar sesión.')
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -203,52 +185,23 @@ export function LearningHub() {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem(TOKEN_KEY)
-    setUser(null)
-    setCourses([])
-    setHistory([])
-    setSelectedCourse(null)
-    setView('courses')
-  }
-
   return (
-    <section id="servicios" className="mx-auto w-full max-w-[1440px] scroll-mt-20 px-6 pt-5 sm:px-10" aria-label="Cuenta y aprendizaje">
+    <section id="cursos" className="mx-auto w-full max-w-[1440px] scroll-mt-20 px-6 pt-5 sm:px-10" aria-label="Cuenta y aprendizaje">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Química · Aprendizaje</p>
           {user && <p className="mt-1 text-sm text-slate-600">{user.nombre} · nivel {user.nivel}</p>}
         </div>
         {user && (
           <div className="flex items-center gap-2">
             <button type="button" className="keyboard-toggle px-3 py-2 text-sm" onClick={() => { setView('courses'); setSelectedCourse(null); setError('') }}>Cursos</button>
             <button type="button" className="keyboard-toggle px-3 py-2 text-sm" onClick={() => { setView('history'); setSelectedCourse(null); setError('') }}>Historial</button>
-            <button type="button" className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-white" onClick={logout}>Cerrar sesión</button>
           </div>
         )}
       </div>
 
       {error && <p className="mt-3 text-sm text-rose-700" role="alert">{error}</p>}
 
-      {!authChecked ? <p className="py-5 text-sm text-slate-600">Verificando sesión…</p> : !user ? (
-        <div className="grid gap-6 border-b border-slate-200 py-5 md:grid-cols-[minmax(0,1fr)_minmax(280px,420px)]">
-          <div className="self-center">
-            <h2 className="font-display text-2xl font-semibold text-slate-900">Guarda tu avance</h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Inicia sesión para practicar cursos por nivel y conservar tus ecuaciones. El balanceador sigue disponible sin cuenta.</p>
-          </div>
-          <form className="grid gap-3" onSubmit={submitAuth}>
-            <div className="flex gap-4 text-sm">
-              <button type="button" className={mode === 'login' ? 'font-semibold text-teal-800' : 'text-slate-500'} onClick={() => { setMode('login'); setError('') }}>Iniciar sesión</button>
-              <button type="button" className={mode === 'register' ? 'font-semibold text-teal-800' : 'text-slate-500'} onClick={() => { setMode('register'); setError('') }}>Crear cuenta</button>
-            </div>
-            {mode === 'register' && <input className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre" minLength={2} maxLength={80} required />}
-            <input className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Correo electrónico" maxLength={120} required />
-            <input className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Contraseña (mínimo 8 caracteres)" minLength={mode === 'register' ? 8 : 1} maxLength={72} required />
-            {mode === 'register' && <select className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" value={level} onChange={(event) => setLevel(event.target.value)}><option value="basico">Básico</option><option value="prepa">Prepa</option><option value="universidad">Universidad</option></select>}
-            <button type="submit" className="button-primary w-fit disabled:opacity-60" disabled={busy}>{busy ? 'Conectando…' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}</button>
-          </form>
-        </div>
-      ) : view === 'history' ? (
+      {!authChecked ? <p className="py-5 text-sm text-slate-600">Verificando sesión…</p> : !user ? null : view === 'history' ? (
         <div className="border-b border-slate-200 py-5">
           <h2 className="font-display text-xl font-semibold text-slate-900">Ecuaciones guardadas</h2>
           {history.length ? <ul className="mt-3 divide-y divide-slate-200">{history.map((item) => {
