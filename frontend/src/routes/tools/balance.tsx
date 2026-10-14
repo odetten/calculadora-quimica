@@ -303,7 +303,7 @@ function App() {
       <section ref={equationSectionRef} className="equation-section mx-auto flex min-h-[calc(100vh-104px)] w-full max-w-[1600px] flex-col justify-center px-6 pb-16 pt-10 sm:px-10">
         <div className="mb-14 flex w-full flex-col items-center text-center">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-teal-700"></p>
-          <h1 className="font-display text-5xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-7xl">Equilibra tu ecuación.</h1>
+          <h1 className="font-display text-5xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-7xl">Balanceo de ecuaciones</h1>
           <p className="mt-6 max-w-2xl self-center text-center text-base leading-7 text-slate-600">Introduce los reactivos y productos para comenzar a resolver el balance quimico.</p>
         </div>
 

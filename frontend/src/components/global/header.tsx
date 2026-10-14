@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 
 const links = [
-  { href: "#inicio", label: "Inicio" },
-  { href: "#servicios", label: "Servicios" },
-  { href: "#contacto", label: "Contacto" },
+  { to: "/", label: "Calculadora" },
+  { to: "/cursos", label: "Cursos" },
+  { to: "/chat", label: "Chat bot" },
 ];
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `whitespace-nowrap text-sm transition-colors sm:text-base ${
+    isActive ? "font-semibold text-teal-700" : "text-gray-600 hover:text-gray-900"
+  }`;
 
 export default function Header() {
   const [hidden, setHidden] = useState(false);
@@ -35,21 +41,29 @@ export default function Header() {
         }`}
       >
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-5">
-          <a href="/" className="text-xl font-bold text-gray-900">
-            MiSitio
-          </a>
+          <Link to="/" className="hidden whitespace-nowrap font-display text-2xl font-bold tracking-tight text-teal-700 sm:block">
+            My Chem
+          </Link>
 
-          <nav className="flex gap-4 sm:gap-6">
+          <nav className="flex items-center gap-4 sm:gap-6" aria-label="Principal">
             {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
-              >
+              <NavLink key={link.to} to={link.to} end className={navLinkClass}>
                 {link.label}
-              </a>
+              </NavLink>
             ))}
           </nav>
+
+          <div className="flex items-center gap-3 sm:gap-5">
+            <NavLink to="/perfil" className={navLinkClass}>
+              Perfil
+            </NavLink>
+            <Link
+              to="/login"
+              className="whitespace-nowrap rounded-full bg-teal-700 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-teal-800 sm:px-4 sm:text-base"
+            >
+              Iniciar sesión
+            </Link>
+          </div>
         </div>
       </header>
 
