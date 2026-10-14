@@ -4,15 +4,15 @@ type HeaderProps = {
   isAuthenticated?: boolean
   onLoginClick?: () => void
   onLogoutClick?: () => void
+  onBasicCourseClick?: () => void
   onNavigate?: (target: 'courses' | 'balanceador') => void
 }
 
 const links = [
-  { href: "#cursos", label: "Cursos", target: 'courses' as const },
   { href: "#balanceador", label: "Balanceador", target: 'balanceador' as const },
 ];
 
-export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onNavigate }: HeaderProps) {
+export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onBasicCourseClick, onNavigate }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false)
   const lastY = useRef(0);
@@ -47,6 +47,29 @@ export default function Header({ isAuthenticated = false, onLoginClick, onLogout
           </a>
 
           <nav className="flex gap-4 sm:gap-6">
+            <div className="group relative">
+              <a
+                href="#cursos"
+                onClick={(event) => {
+                  if (onNavigate) {
+                    event.preventDefault()
+                    onNavigate('courses')
+                  }
+                }}
+                className="text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
+              >
+                Cursos
+              </a>
+              <div className="invisible absolute left-0 top-full z-50 min-w-36 pt-3 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <button
+                  type="button"
+                  onClick={onBasicCourseClick}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-left text-sm text-gray-700 shadow-lg hover:bg-gray-50 hover:text-gray-900"
+                >
+                  Básico
+                </button>
+              </div>
+            </div>
             {links.map((link) => (
               <a
                 key={link.href}

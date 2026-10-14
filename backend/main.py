@@ -40,9 +40,17 @@ def load_prompt(*candidates: str) -> str:
 SYSTEM_PROMPT = load_prompt("system_prompt.txt", "quimicasystempront.txt")
 # Aplicaciones de cada elemento de la ecuación
 APPLICATIONS_PROMPT = load_prompt("aplicaciones.txt")
+MIX_PROMPT = """Eres un asistente de química para un minijuego educativo de mezclas.
+Explica en español, con claridad y brevedad, qué puede ocurrir al combinar las sustancias que indica el estudiante.
+Usa los datos verificados incluidos en el mensaje como fuente principal y no los contradigas.
+Si los datos indican que ocurre una reacción, explica qué reactivos participan y qué productos se conocen.
+Si indican un cambio físico o que no se espera una reacción significativa, acláralo sin inventar productos.
+No inventes productos, condiciones, mecanismos ni resultados que no estén respaldados por los datos proporcionados.
+Si la información no permite saber qué ocurre, dilo explícitamente. No presentes una ecuación incompleta como si estuviera balanceada."""
 
 EXPLANATION_OPTIONS = {"temperature": 0.2, "num_ctx": 4096, "num_predict": 2000}
 APPLICATIONS_OPTIONS = {"temperature": 0.1, "num_ctx": 4096, "num_predict": 1800}
+MIX_OPTIONS = {"temperature": 0.2, "num_ctx": 4096, "num_predict": 700}
 
 app = FastAPI()
 
@@ -93,7 +101,7 @@ def run_chat(system_prompt: str, user_prompt: str, options: dict) -> dict:
 @app.get("/")
 def home():
     return {
-        "message": "Bienvenido a la API de Llama3.1:8b. Envía un POST a /ask (explicación del balanceo) o a /applications (aplicaciones de los elementos) con un JSON que contenga el campo 'prompt'."
+        "message": "Bienvenido a la API de Llama3.1:8b. Envía un POST a /ask (explicación del balanceo), /applications (aplicaciones de los elementos) o /mix (explicación de mezclas) con un JSON que contenga el campo 'prompt'."
     }
 
 
@@ -105,3 +113,8 @@ def ask_llama(request: PromptRequest):
 @app.post("/applications")
 def element_applications(request: PromptRequest):
     return run_chat(APPLICATIONS_PROMPT, request.prompt, APPLICATIONS_OPTIONS)
+
+
+@app.post("/mix")
+def explain_mix(request: PromptRequest):
+    return run_chat(MIX_PROMPT, request.prompt, MIX_OPTIONS)

@@ -3,11 +3,12 @@ import { useCallback, useState } from 'react'
 import { LearningHub } from './LearningHub.tsx'
 import Header from './components/header.tsx'
 import Splash from './components/splash.tsx'
+import MixGame from './Mixgame.tsx'
 import { AuthPage, type AuthMode } from './routes/auth.tsx'
 import { Balance } from './tools/balance.tsx'
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'auth'>('home')
+  const [screen, setScreen] = useState<'home' | 'auth' | 'mixgame'>('home')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
@@ -29,6 +30,10 @@ function App() {
       <Header
         isAuthenticated={isAuthenticated}
         onLoginClick={() => openAuth('login')}
+        onBasicCourseClick={() => {
+          setScreen('mixgame')
+          window.scrollTo({ top: 0 })
+        }}
         onLogoutClick={() => {
           localStorage.removeItem('quimica-token')
           setIsAuthenticated(false)
@@ -55,6 +60,15 @@ function App() {
             setScreen('home')
           }}
           onBack={() => setScreen('home')}
+        />
+      ) : screen === 'mixgame' ? (
+        <MixGame
+          onBack={() => {
+            setScreen('home')
+            window.setTimeout(() => {
+              document.getElementById('balanceador')?.scrollIntoView({ behavior: 'smooth' })
+            }, 0)
+          }}
         />
       ) : (
         <>

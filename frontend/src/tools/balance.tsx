@@ -159,8 +159,9 @@ export function Balance() {
     // 1) Explicación paso a paso
     try {
       const answer = await askModel('/ask', [
-        `Ecuación original: ${reactants} -> ${products}`,
+        `Ecuación introducida por el usuario: ${reactants} -> ${products}`,
         `Solución del sistema (solo para tu uso interno, no la muestres antes del último paso): ${result}`,
+        'Explica el balanceo paso a paso e incluye un resumen breve y claro de lo que representa esta reacción concreta. Basa el resumen en los reactivos y productos introducidos; no inventes condiciones ni productos.',
         'Empieza tu respuesta directamente con la línea "Ecuación original". No hagas preguntas.',
       ].join('\n'))
       explanationText = cleanExplanation(answer)
@@ -393,10 +394,10 @@ export function Balance() {
                     </span>
                   </div>
 
-                  <section className="ai-explanation" aria-label="Desglose paso a paso" aria-live="polite" aria-busy={explanationLoading}>
+                  <section className="ai-explanation" aria-label="Resumen de la reacción y desglose paso a paso" aria-live="polite" aria-busy={explanationLoading}>
                     <div className="ai-explanation-heading">
                       <span className="ai-status-dot" aria-hidden="true" />
-                      Desglose paso a paso
+                      Resumen de la reacción y desglose paso a paso
                       <span className="ai-model-badge">Llama 3.1 · 8B</span>
                     </div>
                     {explanationLoading && <p className="ai-explanation-text">Analizando la ecuación y preparando los pasos…</p>}
