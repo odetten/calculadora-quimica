@@ -11,7 +11,7 @@ from mysql.connector import pooling
 
 load_dotenv(Path(__file__).resolve().parent / "backend" / ".env")
 
-logger = logging.getLogger("quimica.db")
+logger = logging.getLogger("quimicabalance.db")
 _pool: pooling.MySQLConnectionPool | None = None
 
 

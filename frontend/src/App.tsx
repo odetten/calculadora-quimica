@@ -1,13 +1,16 @@
 import './App.css'
 import { useCallback, useState } from 'react'
 import { LearningHub } from './LearningHub.tsx'
-import Header from './components/header.tsx'
+import Header, { type CourseId } from './components/header.tsx'
 import Splash from './components/splash.tsx'
 import { AuthPage, type AuthMode } from './routes/auth.tsx'
+import { HistoryPage } from './routes/history.tsx'
+import { Quimica1Page } from './routes/quimica1.tsx'
+import { Quimica2Page } from './routes/quimica2.tsx'
 import { Balance } from './tools/balance.tsx'
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'auth'>('home')
+  const [screen, setScreen] = useState<'home' | 'auth' | 'history' | CourseId>('home')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
@@ -23,6 +26,11 @@ function App() {
     window.scrollTo({ top: 0 })
   }
 
+  const openCourse = (course: CourseId) => {
+    setScreen(course)
+    window.scrollTo({ top: 0 })
+  }
+
   return (
     <main id="inicio" className="min-h-screen overflow-x-hidden bg-transparent text-slate-900">
       <Splash />
@@ -35,15 +43,19 @@ function App() {
           setScreen('home')
         }}
         onNavigate={(target) => {
-          const section = target === 'courses' ? 'cursos' : 'balanceador'
           if (screen === 'home') {
-            document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' })
+            document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' })
             return
           }
           setScreen('home')
           window.setTimeout(() => {
-            document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' })
+            document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' })
           }, 0)
+        }}
+        onCourseSelect={openCourse}
+        onHomeClick={() => {
+          setScreen('home')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
       />
       {screen === 'auth' ? (
@@ -56,11 +68,21 @@ function App() {
           }}
           onBack={() => setScreen('home')}
         />
+      ) : screen === 'history' ? (
+        <HistoryPage onBack={() => setScreen('home')} />
+      ) : screen === 'quimica-1' ? (
+        <Quimica1Page onBack={() => setScreen('home')} />
+      ) : screen === 'quimica-2' ? (
+        <Quimica2Page onBack={() => setScreen('home')} />
       ) : (
         <>
           <LearningHub
             key={isAuthenticated ? 'authenticated' : 'anonymous'}
             onAuthChange={handleAuthChange}
+            onOpenHistory={() => {
+              setScreen('history')
+              window.scrollTo({ top: 0 })
+            }}
           />
           <Balance />
         </>
