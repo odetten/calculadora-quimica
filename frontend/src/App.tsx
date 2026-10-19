@@ -4,13 +4,14 @@ import { LearningHub } from './LearningHub.tsx'
 import Header, { type CourseId } from './components/header.tsx'
 import Splash from './components/splash.tsx'
 import { AuthPage, type AuthMode } from './routes/auth.tsx'
+import { ExperimentPage } from './routes/experimentar.tsx'
 import { HistoryPage } from './routes/history.tsx'
 import { Quimica1Page } from './routes/quimica1.tsx'
 import { Quimica2Page } from './routes/quimica2.tsx'
 import { Balance } from './tools/balance.tsx'
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'auth' | 'history' | CourseId>('home')
+  const [screen, setScreen] = useState<'home' | 'auth' | 'history' | 'experimentar' | CourseId>('home')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
@@ -53,6 +54,10 @@ function App() {
           }, 0)
         }}
         onCourseSelect={openCourse}
+        onExperimentClick={() => {
+          setScreen('experimentar')
+          window.scrollTo({ top: 0 })
+        }}
         onHomeClick={() => {
           setScreen('home')
           window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -70,6 +75,8 @@ function App() {
         />
       ) : screen === 'history' ? (
         <HistoryPage onBack={() => setScreen('home')} />
+      ) : screen === 'experimentar' ? (
+        <ExperimentPage onBack={() => setScreen('home')} />
       ) : screen === 'quimica-1' ? (
         <Quimica1Page onBack={() => setScreen('home')} />
       ) : screen === 'quimica-2' ? (

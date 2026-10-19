@@ -12,6 +12,7 @@ type HeaderProps = {
   onNavigate?: (target: 'balanceador') => void
   onCourseSelect?: (course: CourseId) => void
   onHomeClick?: () => void
+  onExperimentClick?: () => void
 }
 
 const courses: { id: CourseId; label: string }[] = [
@@ -115,7 +116,7 @@ function NavMenu({ id, label, icon, items, hidden }: { id: string; label: string
   )
 }
 
-export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onNavigate, onCourseSelect, onHomeClick }: HeaderProps) {
+export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onNavigate, onCourseSelect, onHomeClick, onExperimentClick }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false)
   const lastY = useRef(0);
@@ -174,7 +175,7 @@ export default function Header({ isAuthenticated = false, onLoginClick, onLogout
               hidden={hidden}
               items={[{ key: 'balanceador', label: 'Balanceador', onSelect: () => onNavigate?.('balanceador') }]}
             />
-            <button type="button" className={navItemClass}>
+            <button type="button" onClick={onExperimentClick} className={navItemClass}>
               <Atom size={26} aria-hidden="true" />
               <NavLabel>Experimentar</NavLabel>
             </button>

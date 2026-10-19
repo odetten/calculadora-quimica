@@ -232,3 +232,71 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .lp-pulse, .lp-nucleus, .lp-float, .lp-dash, .lp-bubble, .lp-bg-bubble { animation: none; }
 }
+
+/* Laboratorio */
+.lab-wobble { animation: lab-wobble 0.14s ease-in-out infinite; transform-origin: 50% 100%; }
+.lab-burst { animation: lab-burst 0.5s ease-out; }
+.lab-stage-shake { animation: lab-stage-shake 0.7s ease-out; }
+.lab-flash { animation: lab-flash 0.7s ease-out forwards; }
+.lab-shock { animation: lab-shock 0.8s ease-out forwards; }
+.lab-spark { animation: lab-spark 0.9s ease-out forwards; }
+.lab-smoke { opacity: 0; animation: lab-smoke 2.6s ease-out forwards; }
+.lab-bubble { animation: lab-bubble 0.9s ease-in infinite; }
+.lab-foam { animation: lab-foam 0.5s ease-out both; }
+.lab-pop { animation: splash-fade-up 0.4s ease-out both; }
+
+@keyframes lab-wobble {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes lab-burst {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lab-stage-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-9px, 5px); }
+  25% { transform: translate(8px, -6px); }
+  40% { transform: translate(-6px, -4px); }
+  55% { transform: translate(5px, 4px); }
+  75% { transform: translate(-3px, 2px); }
+}
+
+@keyframes lab-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes lab-shock {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+}
+
+@keyframes lab-spark {
+  0% { opacity: 1; transform: translate(0, 0) scale(1.2); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+}
+
+@keyframes lab-smoke {
+  0% { opacity: 0.7; transform: translateY(0) scale(0.5); }
+  100% { opacity: 0; transform: translateY(-150px) scale(2.2); }
+}
+
+@keyframes lab-bubble {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-5rem) scale(1.3); }
+}
+
+@keyframes lab-foam {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-wobble, .lab-burst, .lab-stage-shake, .lab-shock, .lab-spark, .lab-bubble, .lab-foam, .lab-pop { animation: none; }
+  .lab-flash, .lab-smoke { display: none; }
+}
