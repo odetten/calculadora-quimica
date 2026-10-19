@@ -1,7 +1,14 @@
-import { useEffect, useState, type CSSProperties, type DragEvent } from 'react'
-import { findReaction, MIXED_COLOR, REAGENTS, type Reagent } from '../tools/reactions.ts'
+import { useEffect, useState, type ComponentType, type CSSProperties, type DragEvent } from 'react'
+import { PeriodicTable } from '../components/periodicTable.tsx'
+import { findReaction, REACTIONS, REAGENTS, type Reaction, type ReactionEffect, type Reagent } from '../tools/reactions.ts'
 
-type Phase = 'idle' | 'mixing' | 'exploded'
+type Phase = 'idle' | 'mixing' | 'reacted'
+type TabId = 'lab' | 'tabla'
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'lab', label: 'Laboratorio' },
+  { id: 'tabla', label: 'Tabla periódica interactiva' },
+]
 
 const SPARK_COUNT = 16
 const sparks = Array.from({ length: SPARK_COUNT }, (_, i) => {
@@ -31,18 +38,62 @@ const bubbles = [
   { left: '80%', delay: 0.1 },
 ]
 
+const droplets = [
+  { x: -36, delay: 0 },
+  { x: -18, delay: 0.25 },
+  { x: 0, delay: 0.1 },
+  { x: 20, delay: 0.4 },
+  { x: 38, delay: 0.2 },
+  { x: -8, delay: 0.55 },
+  { x: 28, delay: 0.7 },
+  { x: -28, delay: 0.8 },
+]
+
+const crystals = [
+  { x: -42, bottom: 3.1, delay: 0.1 },
+  { x: -24, bottom: 3.6, delay: 0.35 },
+  { x: -6, bottom: 3.2, delay: 0.2 },
+  { x: 14, bottom: 3.7, delay: 0.5 },
+  { x: 32, bottom: 3.1, delay: 0.3 },
+  { x: 46, bottom: 3.6, delay: 0.6 },
+  { x: -34, bottom: 4.4, delay: 0.7 },
+  { x: 4, bottom: 4.5, delay: 0.55 },
+  { x: 24, bottom: 4.3, delay: 0.8 },
+]
+
+const flakes = [
+  { x: -40, dx: -14, delay: 0 },
+  { x: -20, dx: 10, delay: 0.6 },
+  { x: 0, dx: -8, delay: 0.3 },
+  { x: 22, dx: 14, delay: 0.9 },
+  { x: 40, dx: -10, delay: 0.45 },
+  { x: -8, dx: 12, delay: 1.2 },
+  { x: 30, dx: -16, delay: 1.5 },
+]
+
+const co2Puffs = [
+  { x: -22, dx: -26, delay: 0 },
+  { x: 8, dx: 14, delay: 0.6 },
+  { x: -6, dx: -8, delay: 1.2 },
+  { x: 20, dx: 30, delay: 1.8 },
+  { x: -14, dx: 20, delay: 2.3 },
+]
+
 function reagentById(id: string): Reagent | undefined {
   return REAGENTS.find((reagent) => reagent.id === id)
 }
 
-function Beaker({ contents, phase }: { contents: string[]; phase: Phase }) {
+const FLASK_PATH = 'M62 10 L62 76 L16 188 Q6 216 34 218 L126 218 Q154 216 144 188 L98 76 L98 10 Z'
+
+function Flask({ contents, phase, reaction }: { contents: string[]; phase: Phase; reaction?: Reaction }) {
   const mixed = phase !== 'idle'
-  const exploded = phase === 'exploded'
-  const layerHeight = exploded ? 18 : 30
+  const reacted = phase === 'reacted'
+  const exploded = reacted && reaction?.effect === 'explosion'
+  const layerHeight = reacted ? 18 : 30
 
   return (
     <div className={`relative h-56 w-40 ${phase === 'mixing' ? 'lab-wobble' : ''} ${exploded ? 'lab-burst' : ''}`}>
-      <div className="absolute inset-0 overflow-hidden rounded-b-[2.25rem] border-4 border-t-0 border-slate-300 bg-white/50">
+      <div className="absolute inset-0 bg-white/40" style={{ clipPath: `path('${FLASK_PATH}')` }}>
         <div className="absolute inset-x-0 bottom-0 flex flex-col-reverse">
           {contents.map((id) => (
             <div
@@ -50,7 +101,7 @@ function Beaker({ contents, phase }: { contents: string[]; phase: Phase }) {
               className="w-full transition-[height,background-color] duration-[1200ms] ease-out"
               style={{
                 height: `${(layerHeight / 100) * 14}rem`,
-                backgroundColor: mixed ? MIXED_COLOR : reagentById(id)?.color,
+                backgroundColor: mixed && reaction ? reaction.resultColor : reagentById(id)?.color,
                 opacity: 0.9,
               }}
             />
@@ -71,14 +122,25 @@ function Beaker({ contents, phase }: { contents: string[]; phase: Phase }) {
             {[0, 1, 2, 3, 4].map((i) => (
               <span
                 key={i}
-                className="lab-foam size-6 rounded-full bg-amber-100/90"
+                className="lab-foam size-5 rounded-full bg-amber-100/90"
                 style={{ animationDelay: `${i * 0.12}s`, marginTop: i % 2 ? 6 : 0 }}
               />
             ))}
           </div>
         )}
       </div>
-      <div className="absolute -top-0.5 -left-1.5 h-1.5 w-[calc(100%+0.75rem)] rounded-full bg-slate-300" />
+
+      <svg viewBox="0 0 160 224" className="pointer-events-none absolute inset-0 size-full" aria-hidden="true">
+        <path d={FLASK_PATH} fill="none" stroke="#94a3b8" strokeWidth="4" strokeLinejoin="round" />
+        <rect x="55" y="4" width="50" height="9" rx="4.5" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="2" />
+        <g stroke="#64748b" strokeWidth="2" strokeLinecap="round">
+          <line x1="50" y1="110" x2="66" y2="110" />
+          <line x1="37" y1="140" x2="48" y2="140" />
+          <line x1="25" y1="170" x2="41" y2="170" />
+        </g>
+        <path d="M70 22 L70 72" stroke="white" strokeOpacity="0.85" strokeWidth="4" strokeLinecap="round" />
+        <path d="M54 98 L28 162" stroke="white" strokeOpacity="0.6" strokeWidth="5" strokeLinecap="round" />
+      </svg>
     </div>
   )
 }
@@ -106,20 +168,146 @@ function Explosion() {
   )
 }
 
+function WaterEffect() {
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#ffffff_0%,#bae6fd_35%,transparent_70%)]" />
+      {droplets.map((drop, i) => (
+        <span
+          key={i}
+          className="lab-drop pointer-events-none absolute left-1/2 top-[42%] h-3 w-2 rounded-full bg-sky-400"
+          style={{ marginLeft: drop.x, animationDelay: `${drop.delay}s`, '--fall': '6.5rem' } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+function SaltEffect() {
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#fefce8_0%,#fde047_35%,transparent_70%)]" />
+      {sparks.slice(0, 10).map((spark, i) => (
+        <span
+          key={i}
+          className="lab-spark pointer-events-none absolute left-1/2 top-[58%] size-2 rounded-full bg-yellow-300"
+          style={{ '--dx': `${spark.dx * 0.7}px`, '--dy': `${spark.dy * 0.7}px`, animationDelay: `${spark.delay}s` } as CSSProperties}
+        />
+      ))}
+      {crystals.map((crystal, i) => (
+        <span
+          key={i}
+          className="lab-crystal pointer-events-none absolute left-1/2 size-3 border border-slate-300 bg-white"
+          style={{ marginLeft: crystal.x, bottom: `${crystal.bottom}rem`, animationDelay: `${crystal.delay}s` }}
+        />
+      ))}
+    </>
+  )
+}
+
+function RustEffect() {
+  return (
+    <>
+      {flakes.map((flake, i) => (
+        <span
+          key={i}
+          className="lab-flake pointer-events-none absolute left-1/2 top-[38%] size-2 bg-orange-800"
+          style={{ marginLeft: flake.x, animationDelay: `${flake.delay}s`, '--dx': `${flake.dx}px` } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+function Flame({ className, style }: { className: string; style?: CSSProperties }) {
+  return (
+    <svg viewBox="0 0 40 64" className={`lab-flame pointer-events-none absolute ${className}`} style={style} aria-hidden="true">
+      <path
+        d="M20 0 C20 14 34 22 34 42 C34 54 28 62 20 62 C12 62 6 54 6 42 C6 34 10 28 14 20 C14 29 17 32 19 30 C22 22 18 10 20 0 Z"
+        fill="#f97316"
+      />
+      <path
+        d="M20 26 C20 35 28 39 28 48 C28 55 24 60 20 60 C16 60 12 55 12 48 C12 41 18 37 20 26 Z"
+        fill="#fbbf24"
+      />
+      <path d="M20 42 C20 47 24 49 24 53 C24 57 22 59 20 59 C18 59 16 57 16 53 C16 49 20 47 20 42 Z" fill="#fef9c3" />
+    </svg>
+  )
+}
+
+function Co2Effect() {
+  return (
+    <>
+      <Flame className="bottom-[7.2rem] left-1/2 -ml-5 h-16 w-10" />
+      <Flame className="bottom-[7.2rem] left-1/2 ml-3 h-9 w-6" style={{ animationDelay: '0.12s' }} />
+      <Flame className="bottom-[7.2rem] left-1/2 -ml-[2.1rem] h-8 w-5" style={{ animationDelay: '0.22s' }} />
+
+      {co2Puffs.map((puff, i) => (
+        <span
+          key={i}
+          className="lab-puff pointer-events-none absolute bottom-[9rem] left-1/2 size-10 rounded-full bg-slate-400/50 blur-md"
+          style={{ marginLeft: puff.x - 20, animationDelay: `${puff.delay}s`, '--dx': `${puff.dx}px` } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+const EFFECT_VIEWS: Record<ReactionEffect, ComponentType> = {
+  explosion: Explosion,
+  water: WaterEffect,
+  salt: SaltEffect,
+  rust: RustEffect,
+  co2: Co2Effect,
+}
+
+function ReagentButton({
+  reagent,
+  used,
+  canAdd,
+  onAdd,
+}: {
+  reagent: Reagent
+  used: boolean
+  canAdd: boolean
+  onAdd: () => void
+}) {
+  return (
+    <button
+      type="button"
+      draggable={canAdd && !used}
+      disabled={!canAdd || used}
+      onDragStart={(event) => event.dataTransfer.setData('text/plain', reagent.id)}
+      onClick={onAdd}
+      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-left shadow-sm transition enabled:cursor-grab enabled:hover:-translate-y-0.5 enabled:hover:border-teal-300 enabled:hover:shadow-md disabled:opacity-45"
+    >
+      <span className="size-5 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: reagent.color }} aria-hidden="true" />
+      <span className="min-w-0">
+        <span className="block font-display text-sm font-semibold leading-tight text-slate-900">{reagent.formula}</span>
+        <span className="block truncate text-[0.7rem] leading-tight text-slate-600" title={`${reagent.name} · ${reagent.state}`}>
+          {reagent.name}
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export function ExperimentPage({ onBack }: { onBack: () => void }) {
   const [contents, setContents] = useState<string[]>([])
   const [phase, setPhase] = useState<Phase>('idle')
   const [showWhy, setShowWhy] = useState(false)
   const [notice, setNotice] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [tab, setTab] = useState<TabId>('lab')
 
   const reaction = contents.length === 2 ? findReaction(contents[0], contents[1]) : undefined
+  const mixingMs = reaction?.mixingMs ?? 1500
 
   useEffect(() => {
     if (phase !== 'mixing') return
-    const timer = window.setTimeout(() => setPhase('exploded'), 1500)
+    const timer = window.setTimeout(() => setPhase('reacted'), mixingMs)
     return () => window.clearTimeout(timer)
-  }, [phase])
+  }, [phase, mixingMs])
 
   const addReagent = (id: string) => {
     const reagent = reagentById(id)
@@ -133,7 +321,7 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
     setNotice('')
     if (next.length === 2) {
       if (findReaction(next[0], next[1])) setPhase('mixing')
-      else setNotice('Estos dos no reaccionan de forma visible.')
+      else setNotice('Todavía no tenemos esa combinación en el laboratorio. Reinicia y prueba con otra.')
     }
   }
 
@@ -144,6 +332,14 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
     setNotice('')
   }
 
+  const tryIdea = (a: string, b: string) => {
+    setContents([a, b])
+    setPhase('mixing')
+    setShowWhy(false)
+    setNotice('')
+    setTab('lab')
+  }
+
   const onDrop = (event: DragEvent) => {
     event.preventDefault()
     setDragOver(false)
@@ -152,11 +348,21 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
 
   const canAdd = phase === 'idle' && contents.length < 2
 
-  let status = 'Arrastra un reactivo al vaso, o tócalo para añadirlo.'
+  const addFromTable = (id: string) => {
+    addReagent(id)
+    // Con el segundo reactivo la reacción empieza: se lleva al usuario al vaso para verla
+    if (contents.length === 1 && !contents.includes(id)) setTab('lab')
+  }
+
+  let status = 'Arrastra una sustancia al vaso, o tócala para añadirla.'
   if (notice) status = notice
   else if (phase === 'mixing') status = 'Mezclando…'
-  else if (phase === 'exploded') status = '¡Boom! Toca "¿Qué pasó?" para entenderlo.'
-  else if (contents.length === 1) status = 'Ahora añade el otro reactivo.'
+  else if (phase === 'reacted' && reaction) status = `${reaction.resultLine} Toca "¿Qué pasó?" para entenderlo.`
+  else if (contents.length === 1) status = 'Ahora añade la otra sustancia.'
+
+  const EffectView = reaction ? EFFECT_VIEWS[reaction.effect] : undefined
+  const elements = REAGENTS.filter((reagent) => reagent.element)
+  const compounds = REAGENTS.filter((reagent) => !reagent.element)
 
   return (
     <section className="mx-auto w-full max-w-5xl px-6 pb-12 pt-3 sm:px-10">
@@ -165,34 +371,96 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
       </button>
 
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Laboratorio</p>
-        <h1 className="mt-1 font-display text-4xl font-semibold text-slate-950 sm:text-5xl">Experimentar</h1>
-        <p className="mt-2 text-slate-600">Combina reactivos y observa qué pasa.</p>
+        <h1 className="font-display text-4xl font-semibold text-slate-950 sm:text-5xl">Laboratorio</h1>
+        <p className="mt-2 text-slate-600">
+          {tab === 'lab' ? 'Combina sustancias y observa qué pasa.' : 'Explora los elementos antes de experimentar.'}
+        </p>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-[16rem_1fr]">
-        <div className="flex flex-col gap-3" aria-label="Reactivos">
-          {REAGENTS.map((reagent) => {
-            const used = contents.includes(reagent.id)
-            return (
-              <button
+      <div role="tablist" aria-label="Secciones del laboratorio" className="mt-6 flex justify-center gap-2">
+        {TABS.map(({ id, label }) => (
+          <button
+            key={id}
+            id={`tab-${id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            aria-controls={`panel-${id}`}
+            onClick={() => setTab(id)}
+            className={`rounded-full border px-5 py-2 transition-colors ${
+              tab === id
+                ? 'border-teal-700 bg-teal-700 text-white'
+                : 'border-slate-300 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50'
+            }`}
+          >
+            <span className="text-sm font-semibold">
+              {label}
+              {id === 'lab' && contents.length > 0 ? ` (${contents.length})` : ''}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'tabla' && (
+        <div id="panel-tabla" role="tabpanel" aria-labelledby="tab-tabla" className="mt-8">
+          <PeriodicTable contents={contents} canAdd={canAdd} onAddReagent={addFromTable} />
+        </div>
+      )}
+
+      <div
+        id="panel-lab"
+        role="tabpanel"
+        aria-labelledby="tab-lab"
+        hidden={tab !== 'lab'}
+        className="mt-8 grid gap-6 md:grid-cols-[16rem_1fr]"
+      >
+        <div className="flex flex-col gap-2" aria-label="Reactivos">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-700">Elementos</h2>
+          <div className="grid grid-cols-2 gap-1.5">
+            {elements.map((reagent) => (
+              <ReagentButton
                 key={reagent.id}
-                type="button"
-                draggable={canAdd && !used}
-                disabled={!canAdd || used}
-                onDragStart={(event) => event.dataTransfer.setData('text/plain', reagent.id)}
-                onClick={() => addReagent(reagent.id)}
-                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition enabled:cursor-grab enabled:hover:-translate-y-0.5 enabled:hover:border-teal-300 enabled:hover:shadow-md disabled:opacity-45"
-              >
-                <span className="size-10 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: reagent.color }} aria-hidden="true" />
-                <span className="min-w-0">
-                  <span className="block font-display text-xl font-semibold text-slate-900">{reagent.formula}</span>
-                  <span className="block text-sm text-slate-700">{reagent.name}</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{reagent.state}</span>
-                </span>
-              </button>
-            )
-          })}
+                reagent={reagent}
+                used={contents.includes(reagent.id)}
+                canAdd={canAdd}
+                onAdd={() => addReagent(reagent.id)}
+              />
+            ))}
+          </div>
+          <h2 className="mt-2 text-xs font-semibold uppercase tracking-wider text-teal-700">Compuestos</h2>
+          <div className="grid grid-cols-2 gap-1.5">
+            {compounds.map((reagent) => (
+              <ReagentButton
+                key={reagent.id}
+                reagent={reagent}
+                used={contents.includes(reagent.id)}
+                canAdd={canAdd}
+                onAdd={() => addReagent(reagent.id)}
+              />
+            ))}
+          </div>
+
+          <h2 className="mt-2 text-xs font-semibold uppercase tracking-wider text-teal-700">Ideas para combinar</h2>
+          <ul className="flex flex-wrap gap-1.5">
+            {REACTIONS.map(({ ids }) => {
+              const [a, b] = ids.map(reagentById)
+              if (!a || !b) return null
+              return (
+                <li key={ids.join('+')}>
+                  <button
+                    type="button"
+                    onClick={() => tryIdea(ids[0], ids[1])}
+                    className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-teal-900 transition-colors hover:border-teal-400 hover:bg-teal-100"
+                  >
+                    <span className="text-xs font-semibold">
+                      {a.formula} + {b.formula}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="text-xs text-slate-500">Toca una idea y se prepara la mezcla en el vaso.</p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -206,11 +474,11 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
             onDrop={onDrop}
             className={`relative flex h-[26rem] items-end justify-center overflow-hidden rounded-3xl border-2 bg-gradient-to-b from-white to-teal-50 pb-10 transition-colors ${
               dragOver ? 'border-teal-500 bg-teal-50' : 'border-slate-200'
-            } ${phase === 'exploded' ? 'lab-stage-shake' : ''}`}
+            } ${phase === 'reacted' && reaction?.effect === 'explosion' ? 'lab-stage-shake' : ''}`}
           >
             <div className="absolute inset-x-0 bottom-9 h-1.5 bg-slate-200" aria-hidden="true" />
-            <Beaker contents={contents} phase={phase} />
-            {phase === 'exploded' && <Explosion />}
+            <Flask contents={contents} phase={phase} reaction={reaction} />
+            {phase === 'reacted' && EffectView && <EffectView />}
           </div>
 
           <p role="status" className="min-h-6 text-center text-sm text-slate-700">
@@ -218,7 +486,7 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
-            {phase === 'exploded' && (
+            {phase === 'reacted' && (
               <button
                 type="button"
                 onClick={() => setShowWhy((open) => !open)}
@@ -242,10 +510,22 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      {phase === 'exploded' && showWhy && reaction && (
+      {tab === 'lab' && phase === 'reacted' && showWhy && reaction && (
         <article id="why-panel" className="lab-pop mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="font-display text-2xl font-semibold text-slate-900">{reaction.title}</h2>
           <p className="mt-3 rounded-xl bg-teal-50 px-4 py-3 font-mono text-sm text-teal-900">{reaction.equation}</p>
+          {reaction.otherEquations && (
+            <div className="mt-2 text-sm text-slate-600">
+              <p>También pueden formarse otros productos:</p>
+              <ul className="mt-1 space-y-1">
+                {reaction.otherEquations.map((equation) => (
+                  <li key={equation} className="rounded-lg bg-slate-50 px-3 py-1.5 font-mono text-slate-800">
+                    {equation}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-teal-700">Lo que viste</h3>
           <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-700">
@@ -262,8 +542,8 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
           </div>
 
           <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <strong>Seguridad: </strong>
-            {reaction.safety}
+            <strong>{reaction.noteLabel}: </strong>
+            {reaction.note}
           </p>
         </article>
       )}

@@ -6,12 +6,13 @@ import Splash from './components/splash.tsx'
 import { AuthPage, type AuthMode } from './routes/auth.tsx'
 import { ExperimentPage } from './routes/experimentar.tsx'
 import { HistoryPage } from './routes/history.tsx'
+import { LandingPage } from './routes/landing.tsx'
 import { Quimica1Page } from './routes/quimica1.tsx'
 import { Quimica2Page } from './routes/quimica2.tsx'
 import { Balance } from './tools/balance.tsx'
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'auth' | 'history' | 'experimentar' | CourseId>('home')
+  const [screen, setScreen] = useState<'home' | 'landing' | 'auth' | 'history' | 'experimentar' | CourseId>('landing')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
@@ -59,11 +60,18 @@ function App() {
           window.scrollTo({ top: 0 })
         }}
         onHomeClick={() => {
-          setScreen('home')
-          window.scrollTo({ top: 0, behavior: 'smooth' })
+          setScreen('landing')
+          window.scrollTo({ top: 0 })
         }}
       />
-      {screen === 'auth' ? (
+      {screen === 'landing' ? (
+        <LandingPage
+          onStart={() => {
+            setScreen('home')
+            window.scrollTo({ top: 0 })
+          }}
+        />
+      ) : screen === 'auth' ? (
         <AuthPage
           mode={authMode}
           onModeChange={setAuthMode}

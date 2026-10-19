@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Atom, ChevronDown, LandPlot, Sigma, User } from "lucide-react";
 import logo from "../assets/mychem-logo.png";
+import ReactiveLoginButton from "./reactiveLoginButton.tsx";
 import "../index.css";
 
 export type CourseId = 'quimica-1' | 'quimica-2'
@@ -177,21 +178,30 @@ export default function Header({ isAuthenticated = false, onLoginClick, onLogout
             />
             <button type="button" onClick={onExperimentClick} className={navItemClass}>
               <Atom size={26} aria-hidden="true" />
-              <NavLabel>Experimentar</NavLabel>
+              <NavLabel>Laboratorio</NavLabel>
             </button>
           </nav>
 
           <div className="relative flex justify-end">
-            <button
-              type="button"
-              onClick={() => (isAuthenticated ? setConfirmLogout((open) => !open) : onLoginClick?.())}
-              aria-label={isAuthenticated ? "Cuenta: cerrar sesión" : "Iniciar sesión"}
-              aria-expanded={isAuthenticated ? confirmLogout : undefined}
-              aria-controls={isAuthenticated ? "logout-confirmation" : undefined}
-              className="flex size-9 items-center justify-center rounded-full bg-gray-200 text-gray-500 transition-colors hover:bg-gray-300 hover:text-gray-700"
-            >
-              <User className="size-5" aria-hidden="true" />
-            </button>
+            {!isAuthenticated && (
+              <ReactiveLoginButton onClick={onLoginClick} ariaLabel="Iniciar sesión">
+                <span className="flex size-9 items-center justify-center rounded-full bg-gray-200 text-gray-500 transition-colors group-hover:bg-gray-300 group-hover:text-gray-700">
+                  <User className="size-5" aria-hidden="true" />
+                </span>
+              </ReactiveLoginButton>
+            )}
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setConfirmLogout((open) => !open)}
+                aria-label="Cuenta: cerrar sesión"
+                aria-expanded={confirmLogout}
+                aria-controls="logout-confirmation"
+                className="flex size-9 items-center justify-center rounded-full bg-gray-200 text-gray-500 transition-colors hover:bg-gray-300 hover:text-gray-700"
+              >
+                <User className="size-5" aria-hidden="true" />
+              </button>
+            )}
             {isAuthenticated && confirmLogout && (
               <div
                 id="logout-confirmation"

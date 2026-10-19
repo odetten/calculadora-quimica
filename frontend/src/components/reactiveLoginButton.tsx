@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 const COLORS = ['#14b8a6', '#f59e0b']
 
@@ -66,7 +66,15 @@ function explode(x: number, y: number, onCovered: () => void) {
   return settle
 }
 
-export default function ReactiveLoginButton({ onClick }: { onClick?: () => void }) {
+export default function ReactiveLoginButton({
+  onClick,
+  ariaLabel,
+  children = 'Iniciar sesión',
+}: {
+  onClick?: () => void
+  ariaLabel?: string
+  children?: ReactNode
+}) {
   const button = useRef<HTMLButtonElement>(null)
   const left = useRef<HTMLSpanElement>(null)
   const right = useRef<HTMLSpanElement>(null)
@@ -153,6 +161,7 @@ export default function ReactiveLoginButton({ onClick }: { onClick?: () => void 
       ref={button}
       type="button"
       onClick={handleClick}
+      aria-label={ariaLabel}
       className="group relative px-6 text-sm text-gray-600 transition-colors hover:text-gray-900 sm:text-base"
     >
       <span
@@ -161,8 +170,8 @@ export default function ReactiveLoginButton({ onClick }: { onClick?: () => void 
         className="absolute left-0 top-1/2 -mt-1.25 size-2.5 rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
         style={{ background: COLORS[0] }}
       />
-      <span ref={label} className="inline-block">
-        Iniciar sesión
+      <span ref={label} className="inline-flex">
+        {children}
       </span>
       <span
         ref={right}
