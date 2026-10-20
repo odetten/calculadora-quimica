@@ -131,6 +131,22 @@
   @apply w-full rounded-xl border border-slate-200 bg-stone-50/90 px-3 py-3 text-left transition hover:border-teal-300 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
 }
 
+.category-chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[0.65rem] font-semibold text-slate-600 transition hover:border-teal-300 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
+}
+
+.category-chip[aria-pressed='true'] {
+  @apply border-teal-600 bg-teal-50 text-teal-900;
+}
+
+.category-option {
+  @apply flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-800 focus-visible:outline-2 focus-visible:outline-teal-700;
+}
+
+.category-option[aria-pressed='true'] {
+  @apply font-semibold text-teal-900;
+}
+
 .idea-formula {
   @apply whitespace-nowrap text-xs text-slate-700;
   font-family: var(--font-display);

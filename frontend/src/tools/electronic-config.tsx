@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent, type ReactElement } from 'react'
-import { PERIODIC_ELEMENTS } from './periodicTable.ts'
+import { useEffect, useRef, useState, type FormEvent, type ReactElement } from 'react'
+import { Check, ChevronDown } from 'lucide-react'
+import { CATEGORY_INFO, PERIODIC_ELEMENTS, type ElementCategory } from './periodicTable.ts'
 
 const orbitalOrder = ['1s', '2s', '2p', '3s', '3p', '4s', '3d', '4p', '5s', '4d', '5p', '6s', '4f', '5d', '6p', '7s', '5f', '6d', '7p']
 const orbitalCapacity: Record<string, number> = {
@@ -86,18 +87,11 @@ async function askModel(path: string, prompt: string): Promise<string> {
   return payload.answer
 }
 
-const suggestedElements = [
-  { number: 1, name: 'Hidrógeno' },
-  { number: 6, name: 'Carbono' },
-  { number: 8, name: 'Oxígeno' },
-  { number: 11, name: 'Sodio' },
-  { number: 26, name: 'Hierro' },
-  { number: 29, name: 'Cobre' },
-  { number: 35, name: 'Bromo' },
-  { number: 47, name: 'Plata' },
-  { number: 79, name: 'Oro' },
-  { number: 92, name: 'Uranio' },
-]
+const elementGroups = (Object.keys(CATEGORY_INFO) as ElementCategory[]).map((category) => ({
+  category,
+  ...CATEGORY_INFO[category],
+  elements: PERIODIC_ELEMENTS.filter((element) => element.category === category),
+}))
 
 export function ElectronicConfig() {
   const [atomicNumber, setAtomicNumber] = useState('26')
@@ -107,8 +101,20 @@ export function ElectronicConfig() {
   const [propertiesError, setPropertiesError] = useState('')
   const [propertiesLoading, setPropertiesLoading] = useState(false)
   const [previousResults, setPreviousResults] = useState<Array<{ number: number; name: string; config: string }>>([])
+  const [selectedCategories, setSelectedCategories] = useState<ElementCategory[]>([])
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const sectionRef = useRef<HTMLElement>(null)
+  const categoryMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!categoryMenuOpen) return
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!categoryMenuRef.current?.contains(event.target as Node)) setCategoryMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
+  }, [categoryMenuOpen])
 
   const clearResults = () => {
     setConfig('')
@@ -187,6 +193,18 @@ export function ElectronicConfig() {
     void calculate(number)
   }
 
+  const toggleCategory = (category: ElementCategory) => {
+    setSelectedCategories((previous) =>
+      previous.includes(category)
+        ? previous.filter((item) => item !== category)
+        : [...previous, category],
+    )
+  }
+
+  const visibleGroups = selectedCategories.length > 0
+    ? elementGroups.filter((group) => selectedCategories.includes(group.category))
+    : elementGroups
+
   return (
     <>
       <section id="configuracion-electronica" ref={sectionRef} className="equation-section mx-auto flex min-h-[calc(100vh-104px)] w-full max-w-[1600px] scroll-mt-20 flex-col justify-center px-6 pb-16 pt-10 sm:px-10">
@@ -199,24 +217,99 @@ export function ElectronicConfig() {
         <div className="equation-workspace grid w-full gap-8 xl:grid-cols-[minmax(220px,1fr)_minmax(0,900px)_minmax(220px,1fr)]">
           <aside className="ideas-card h-fit xl:self-center xl:col-start-1 xl:row-start-1" aria-labelledby="elements-list-title">
             <div className="mb-4">
-              <p className="ideas-eyebrow">Elementos sugeridos</p>
+              <p className="ideas-eyebrow">Todos los elementos</p>
               <h2 id="elements-list-title" className="mt-1 text-lg font-semibold tracking-tight text-slate-900">Ejemplos interesantes</h2>
               <p className="mt-1 text-xs leading-5 text-slate-600">Toca uno para explorarlo.</p>
             </div>
-            <ul className="grid gap-2">
-              {suggestedElements.map((element) => (
-                <li key={element.number}>
-                  <button
-                    type="button"
-                    className="idea-button"
-                    onClick={() => loadElement(element.number)}
+            <div className="mb-4 flex gap-1.5" role="group" aria-label="Filtrar elementos por tipo">
+              <button
+                type="button"
+                className="category-chip"
+                aria-pressed={selectedCategories.length === 0}
+                onClick={() => {
+                  setSelectedCategories([])
+                  setCategoryMenuOpen(false)
+                }}
+              >
+                Todos
+              </button>
+              <div
+                ref={categoryMenuRef}
+                className="relative"
+                onKeyDown={(event) => {
+                  if (event.key !== 'Escape') return
+                  setCategoryMenuOpen(false)
+                  event.currentTarget.querySelector('button')?.focus()
+                }}
+              >
+                <button
+                  type="button"
+                  className="category-chip"
+                  aria-pressed={selectedCategories.length > 0}
+                  aria-expanded={categoryMenuOpen}
+                  aria-controls="category-menu"
+                  onClick={() => setCategoryMenuOpen((open) => !open)}
+                >
+                  Tipos{selectedCategories.length > 0 && ` (${selectedCategories.length})`}
+                  <ChevronDown
+                    aria-hidden="true"
+                    size={12}
+                    className={`transition-transform duration-200 motion-reduce:transition-none ${categoryMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {categoryMenuOpen && (
+                  <div
+                    id="category-menu"
+                    className="absolute left-0 top-full z-20 mt-2 max-h-56 w-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
                   >
-                    <span className="block text-xs font-semibold text-slate-800">{element.name}</span>
-                    <span className="mt-1 block text-[0.65rem] font-mono text-teal-700">Z = {element.number}</span>
-                  </button>
-                </li>
+                    {elementGroups.map((group) => {
+                      const selected = selectedCategories.includes(group.category)
+                      return (
+                        <button
+                          key={group.category}
+                          type="button"
+                          className="category-option"
+                          aria-pressed={selected}
+                          onClick={() => toggleCategory(group.category)}
+                        >
+                          <span className={`size-2 shrink-0 rounded-full ${group.dot}`} aria-hidden="true" />
+                          <span className="flex-1">{group.label}</span>
+                          {selected && <Check aria-hidden="true" size={14} className="shrink-0 text-teal-700" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="-mr-2 max-h-96 overflow-y-auto pr-2 xl:max-h-128">
+              {visibleGroups.map((group) => (
+                <section key={group.category} className="mb-4 last:mb-0" aria-labelledby={`group-${group.category}`}>
+                  <h3
+                    id={`group-${group.category}`}
+                    className="sticky top-0 z-10 mb-2 flex items-center gap-2 bg-white py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-slate-600"
+                  >
+                    <span className={`size-2 rounded-full ${group.dot}`} aria-hidden="true" />
+                    {group.label}
+                    <span className="font-normal normal-case tracking-normal text-slate-400">({group.elements.length})</span>
+                  </h3>
+                  <ul className="grid gap-2">
+                    {group.elements.map((element) => (
+                      <li key={element.number}>
+                        <button
+                          type="button"
+                          className="idea-button"
+                          onClick={() => loadElement(element.number)}
+                        >
+                          <span className="block text-xs font-semibold text-slate-800">{element.name}</span>
+                          <span className="mt-1 block text-[0.65rem] font-mono text-teal-700">{element.symbol} · Z = {element.number}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           </aside>
 
           <div className="min-w-0 xl:col-start-2 xl:row-start-1">
