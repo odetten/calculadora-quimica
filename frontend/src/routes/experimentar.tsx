@@ -253,12 +253,152 @@ function Co2Effect() {
   )
 }
 
+function SparkleEffect() {
+  const sparkles = Array.from({ length: 24 }, (_, i) => {
+    const angle = (i / 24) * Math.PI * 2
+    const distance = 80 + (i % 3) * 20
+    return {
+      dx: Math.round(Math.cos(angle) * distance),
+      dy: Math.round(Math.sin(angle) * distance),
+      delay: (i * 0.08) % 0.8,
+      size: 2 + (i % 3),
+    }
+  })
+
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#ffffff_0%,#fef9c3_25%,transparent_60%)]" />
+      {sparkles.map((spark, i) => (
+        <span
+          key={i}
+          className="lab-spark pointer-events-none absolute left-1/2 top-[58%] rounded-full bg-yellow-200"
+          style={{
+            width: `${spark.size}px`,
+            height: `${spark.size}px`,
+            '--dx': `${spark.dx}px`,
+            '--dy': `${spark.dy}px`,
+            animationDelay: `${spark.delay}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+function EffervescenceEffect() {
+  const bubbles = Array.from({ length: 20 }, (_, i) => ({
+    left: `${10 + (i % 8) * 12}%`,
+    delay: (i * 0.15) % 1.2,
+    size: 4 + (i % 3) * 2,
+  }))
+
+  return (
+    <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#e0f2fe_0%,#bfdbfe_30%,transparent_65%)]">
+      {bubbles.map((bubble, i) => (
+        <span
+          key={i}
+          className="lab-bubble pointer-events-none absolute bottom-4 rounded-full border-2 border-cyan-300/60 bg-cyan-100/40"
+          style={{
+            left: bubble.left,
+            width: `${bubble.size}px`,
+            height: `${bubble.size}px`,
+            animationDelay: `${bubble.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function PrecipitationEffect() {
+  const particles = Array.from({ length: 16 }, (_, i) => ({
+    left: `${15 + (i % 7) * 14}%`,
+    delay: (i * 0.12) % 0.9,
+  }))
+
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#f5f5f5_0%,#e5e5e5_35%,transparent_65%)]" />
+      {particles.map((particle, i) => (
+        <span
+          key={i}
+          className="lab-crystal pointer-events-none absolute left-1/2 top-[30%] size-2 rounded-full bg-white border border-gray-300"
+          style={{
+            marginLeft: `calc(${particle.left} - 50%)`,
+            animation: `lab-drop 1.5s ease-in forwards`,
+            animationDelay: `${particle.delay}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+function ColorChangeEffect() {
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#e0e7ff_0%,#c7d2e0_35%,transparent_70%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-purple-300/0 via-purple-200/30 to-transparent transition-all duration-[2000ms]" />
+    </>
+  )
+}
+
+function DarkeningEffect() {
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 opacity-0 bg-black/20 animate-pulse" style={{ animationDuration: '2s' }} />
+      {Array.from({ length: 12 }, (_, i) => (
+        <span
+          key={i}
+          className="lab-flake pointer-events-none absolute left-1/2 top-[40%] size-1.5 bg-gray-900 rounded-full"
+          style={{
+            marginLeft: `${-50 + (i % 6) * 20}px`,
+            marginTop: `${(i % 3) * 10}px`,
+            animation: `lab-flake 1.5s ease-out forwards`,
+            animationDelay: `${(i * 0.15) % 1.2}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
+function WhiteSmokeEffect() {
+  const puffs = Array.from({ length: 12 }, (_, i) => ({
+    x: -40 + (i % 8) * 15,
+    delay: (i * 0.2) % 1.5,
+  }))
+
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,#ffffff_0%,#f0f0f0_40%,transparent_70%)]" />
+      {puffs.map((puff, i) => (
+        <span
+          key={i}
+          className="pointer-events-none absolute left-1/2 top-[35%] size-16 rounded-full bg-gradient-to-t from-gray-200/0 to-white/40 blur-xl"
+          style={{
+            marginLeft: puff.x,
+            animation: `lab-puff 2s ease-out forwards`,
+            animationDelay: `${puff.delay}s`,
+          } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
 const EFFECT_VIEWS: Record<ReactionEffect, ComponentType> = {
   explosion: Explosion,
   water: WaterEffect,
   salt: SaltEffect,
   rust: RustEffect,
   co2: Co2Effect,
+  sparkle: SparkleEffect,
+  effervescence: EffervescenceEffect,
+  precipitation: PrecipitationEffect,
+  colorchange: ColorChangeEffect,
+  darkening: DarkeningEffect,
+  whitesmoke: WhiteSmokeEffect,
 }
 
 function ReagentButton({

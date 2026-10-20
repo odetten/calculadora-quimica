@@ -10,8 +10,8 @@ type HeaderProps = {
   isAuthenticated?: boolean
   onLoginClick?: () => void
   onLogoutClick?: () => void
-  onNavigate?: (target: 'balanceador') => void
   onCourseSelect?: (course: CourseId) => void
+  onCalculatorSelect?: (calculator: 'balance' | 'electronic') => void
   onHomeClick?: () => void
   onExperimentClick?: () => void
 }
@@ -117,7 +117,7 @@ function NavMenu({ id, label, icon, items, hidden }: { id: string; label: string
   )
 }
 
-export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onNavigate, onCourseSelect, onHomeClick, onExperimentClick }: HeaderProps) {
+export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onCourseSelect, onCalculatorSelect, onHomeClick, onExperimentClick }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false)
   const lastY = useRef(0);
@@ -174,7 +174,10 @@ export default function Header({ isAuthenticated = false, onLoginClick, onLogout
               label="Calculadoras"
               icon={<Sigma size={26} aria-hidden="true" />}
               hidden={hidden}
-              items={[{ key: 'balanceador', label: 'Balanceador', onSelect: () => onNavigate?.('balanceador') }]}
+              items={[
+                { key: 'balance', label: 'Equilibra tu ecuación', onSelect: () => onCalculatorSelect?.('balance') },
+                { key: 'electronic', label: 'Configuración electrónica', onSelect: () => onCalculatorSelect?.('electronic') },
+              ]}
             />
             <button type="button" onClick={onExperimentClick} className={navItemClass}>
               <Atom size={26} aria-hidden="true" />
