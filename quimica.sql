@@ -94,6 +94,24 @@ CREATE TABLE mensajes (
   FOREIGN KEY (conversacion_id) REFERENCES conversaciones(id) ON DELETE CASCADE
 );
 
+-- -----------------------------------------------------
+-- 7. Progreso de lecciones (el contenido vive en lessons/)
+--    leccion = 'nivel:curso:numero', ej. 'prepa:quimica-2:1'
+--    Aprobar el examen de una lección desbloquea la siguiente.
+--    La API también la crea sola si no existe.
+-- -----------------------------------------------------
+CREATE TABLE progreso_lecciones (
+  usuario_id INT UNSIGNED NOT NULL,
+  leccion VARCHAR(60) NOT NULL,
+  mejor_puntaje TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  aprobado BOOLEAN NOT NULL DEFAULT FALSE,
+  intentos SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (usuario_id, leccion),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
 -- =====================================================
 -- DATOS DE EJEMPLO (cursos y problemas)
 -- =====================================================
