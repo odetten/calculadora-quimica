@@ -1,39 +1,53 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiRequest, TOKEN_KEY } from '../api.ts'
-import { CoursePractice, type Course } from './coursePractice.tsx'
+import type { CourseLessons } from '../lessons.ts'
+import type { CourseId } from './header.tsx'
 import { LessonPath } from './lessonPath.tsx'
+import { LessonView } from './lessonView.tsx'
 
 type CoursePageProps = {
   courseTitle: string
-  courseIndex: number
+  courseId: CourseId
   onBack: () => void
 }
 
-export function CoursePage({ courseTitle, courseIndex, onBack }: CoursePageProps) {
+export function CoursePage({ courseTitle, courseId, onBack }: CoursePageProps) {
   const loggedIn = Boolean(localStorage.getItem(TOKEN_KEY))
-  const [course, setCourse] = useState<Course | null>(null)
-  const [loaded, setLoaded] = useState(!loggedIn)
-  const [practicing, setPracticing] = useState(false)
+  const [course, setCourse] = useState<CourseLessons | null>(null)
+  const [error, setError] = useState('')
+  const [openLesson, setOpenLesson] = useState<number | null>(null)
 
   const loadCourse = useCallback(() => {
     if (!localStorage.getItem(TOKEN_KEY)) return
-    apiRequest<Course[]>('/courses')
-      .then((courses) => setCourse(courses[courseIndex] ?? null))
-      .catch(() => setCourse(null))
-      .finally(() => setLoaded(true))
-  }, [courseIndex])
+    apiRequest<CourseLessons>(`/lessons/${courseId}`)
+      .then((data) => {
+        setCourse(data)
+        setError('')
+      })
+      .catch((requestError: unknown) => {
+        setError(requestError instanceof Error ? requestError.message : 'No se pudo cargar el curso.')
+      })
+  }, [courseId])
 
   useEffect(() => {
     loadCourse()
   }, [loadCourse])
 
-  if (practicing && course) {
+  if (openLesson !== null) {
     return (
-      <CoursePractice
-        course={course}
+      <LessonView
+        key={openLesson}
+        course={courseId}
+        number={openLesson}
         onBack={() => {
-          setPracticing(false)
+          setOpenLesson(null)
           loadCourse()
+          window.scrollTo({ top: 0 })
+        }}
+        onNext={(next) => {
+          setOpenLesson(next)
+          loadCourse()
+          window.scrollTo({ top: 0 })
         }}
       />
     )
@@ -41,19 +55,22 @@ export function CoursePage({ courseTitle, courseIndex, onBack }: CoursePageProps
 
   let blockedMessage: string | undefined
   if (!loggedIn) blockedMessage = 'Inicia sesión'
-  else if (!loaded) blockedMessage = 'Cargando…'
-  else if (!course) blockedMessage = 'Sin lección'
+  else if (error) blockedMessage = 'Sin conexión'
+  else if (!course) blockedMessage = 'Cargando…'
 
   return (
-    <LessonPath
-      courseTitle={courseTitle}
-      lessonTitle="Lección 1"
-      lessonTopic={course?.titulo ?? 'Primera lección'}
-      done={course?.resueltos ?? 0}
-      total={course?.total ?? 0}
-      onStart={course ? () => setPracticing(true) : undefined}
-      blockedMessage={blockedMessage}
-      onBack={onBack}
-    />
+    <>
+      <LessonPath
+        courseTitle={course?.titulo ?? courseTitle}
+        lessons={course?.lecciones ?? []}
+        onOpen={(number) => {
+          setOpenLesson(number)
+          window.scrollTo({ top: 0 })
+        }}
+        blockedMessage={blockedMessage}
+        onBack={onBack}
+      />
+      {error && <p className="-mt-6 pb-8 text-center text-sm text-rose-700" role="alert">{error}</p>}
+    </>
   )
 }

@@ -14,6 +14,7 @@ if str(BASE_DIR) not in sys.path:
 from routes_auth import router as auth_router
 from routes_courses import router as courses_router
 from routes_history import router as history_router
+from routes_lessons import router as lessons_router
 
 
 def load_prompt(*candidates: str) -> str:
@@ -60,6 +61,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(courses_router)
 app.include_router(history_router)
+app.include_router(lessons_router)
 
 
 class PromptRequest(BaseModel):
