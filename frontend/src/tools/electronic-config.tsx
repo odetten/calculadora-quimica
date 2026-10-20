@@ -145,11 +145,11 @@ export function ElectronicConfig() {
     setPropertiesLoading(true)
 
     try {
-      const answer = await askModel('/ask', [
+      const answer = await askModel('/electronic-config', [
         `Elemento: ${elementName}`,
         `Número atómico: ${number}`,
         `Configuración electrónica: ${result}`,
-        'Describe brevemente las propiedades químicas de este elemento basándote en su configuración electrónica. Sé conciso, máximo 3-4 oraciones. No hagas preguntas.',
+        'Explica qué significa la configuración electrónica y cómo se construyó, paso a paso, usando el orden de llenado y la capacidad de cada orbital. Muestra cómo la distribución corresponde al número atómico y qué indica sobre los electrones externos y las propiedades químicas del elemento. Basa la explicación en la configuración proporcionada; no la cambies ni inventes datos. Usa lenguaje claro para un estudiante y no hagas preguntas.',
       ].join('\n'))
       setProperties(answer.trim())
     } catch (error) {
@@ -264,13 +264,13 @@ export function ElectronicConfig() {
                     </span>
                   </div>
 
-                  <section className="ai-explanation" aria-label="Propiedades del elemento" aria-live="polite" aria-busy={propertiesLoading}>
+                  <section className="ai-explanation" aria-label="Explicación paso a paso de la configuración electrónica" aria-live="polite" aria-busy={propertiesLoading}>
                     <div className="ai-explanation-heading">
                       <span className="ai-status-dot" aria-hidden="true" />
-                      Propiedades químicas
+                      Explicación paso a paso
                       <span className="ai-model-badge">Llama 3.1 · 8B</span>
                     </div>
-                    {propertiesLoading && <p className="ai-explanation-text">Analizando la configuración electrónica…</p>}
+                    {propertiesLoading && <p className="ai-explanation-text">Explicando la configuración electrónica…</p>}
                     {propertiesError && <p className="ai-explanation-text text-amber-800">{propertiesError}</p>}
                     {properties && <p className="ai-explanation-text whitespace-pre-wrap">{properties}</p>}
                   </section>

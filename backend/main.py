@@ -41,9 +41,12 @@ def load_prompt(*candidates: str) -> str:
 SYSTEM_PROMPT = load_prompt("system_prompt.txt", "quimicasystempront.txt")
 # Aplicaciones de cada elemento de la ecuación
 APPLICATIONS_PROMPT = load_prompt("aplicaciones.txt")
+# Explicación de la calculadora de configuración electrónica
+ELECTRONIC_CONFIG_PROMPT = load_prompt("configuracion_electronica.txt")
 
 EXPLANATION_OPTIONS = {"temperature": 0.2, "num_ctx": 4096, "num_predict": 2000}
 APPLICATIONS_OPTIONS = {"temperature": 0.1, "num_ctx": 4096, "num_predict": 1800}
+ELECTRONIC_CONFIG_OPTIONS = {"temperature": 0.2, "num_ctx": 4096, "num_predict": 1200}
 
 app = FastAPI()
 
@@ -95,7 +98,7 @@ def run_chat(system_prompt: str, user_prompt: str, options: dict) -> dict:
 @app.get("/")
 def home():
     return {
-        "message": "Bienvenido a la API de Llama3.1:8b. Envía un POST a /ask (explicación del balanceo) o a /applications (aplicaciones de los elementos) con un JSON que contenga el campo 'prompt'."
+        "message": "Bienvenido a la API de Llama3.1:8b. Envía un POST a /ask (explicación del balanceo), /applications (aplicaciones de los elementos) o /electronic-config (configuración electrónica) con un JSON que contenga el campo 'prompt'."
     }
 
 
@@ -107,3 +110,12 @@ def ask_llama(request: PromptRequest):
 @app.post("/applications")
 def element_applications(request: PromptRequest):
     return run_chat(APPLICATIONS_PROMPT, request.prompt, APPLICATIONS_OPTIONS)
+
+
+@app.post("/electronic-config")
+def explain_electronic_config(request: PromptRequest):
+    return run_chat(
+        ELECTRONIC_CONFIG_PROMPT,
+        request.prompt,
+        ELECTRONIC_CONFIG_OPTIONS,
+    )
