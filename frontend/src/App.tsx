@@ -10,6 +10,7 @@ import { LandingPage } from './routes/landing.tsx'
 import { Quimica1Page } from './routes/quimica1.tsx'
 import { Quimica2Page } from './routes/quimica2.tsx'
 import { Balance } from './tools/balance.tsx'
+import { ElectronicConfig } from './tools/electronic-config.tsx'
 
 function App() {
   const [screen, setScreen] = useState<'home' | 'landing' | 'auth' | 'history' | 'experimentar' | CourseId>('landing')
@@ -17,6 +18,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
   )
+  const [activeCalculator, setActiveCalculator] = useState<'balance' | 'electronic'>('balance')
 
   const handleAuthChange = useCallback((authenticated: boolean) => {
     setIsAuthenticated(authenticated)
@@ -44,15 +46,10 @@ function App() {
           setIsAuthenticated(false)
           setScreen('home')
         }}
-        onNavigate={(target) => {
-          if (screen === 'home') {
-            document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' })
-            return
-          }
+        onCalculatorSelect={(calculator) => {
+          setActiveCalculator(calculator)
           setScreen('home')
-          window.setTimeout(() => {
-            document.getElementById(target)?.scrollIntoView({ behavior: 'smooth' })
-          }, 0)
+          window.scrollTo({ top: 0 })
         }}
         onCourseSelect={openCourse}
         onExperimentClick={() => {
@@ -99,7 +96,8 @@ function App() {
               window.scrollTo({ top: 0 })
             }}
           />
-          <Balance />
+          {activeCalculator === 'balance' && <Balance />}
+          {activeCalculator === 'electronic' && <ElectronicConfig />}
         </>
       )}
     </main>

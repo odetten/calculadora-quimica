@@ -386,7 +386,7 @@ export function LandingPage({ onStart }: { onStart: () => void }) {
       <section aria-label="My Chem en números" className="bg-white">
         <div className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-14 sm:grid-cols-3 sm:px-10">
           {stats.map((stat, index) => (
-            <Reveal key={stat.label} delay={index * 120} className="text-center">
+            <Reveal key={stat.label} delay={index * 120} className="flex flex-col items-center text-center">
               <p className="font-display text-6xl font-extrabold text-teal-700">
                 <CountUp to={stat.value} />
               </p>
