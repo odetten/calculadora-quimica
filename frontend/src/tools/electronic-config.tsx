@@ -283,6 +283,7 @@ export function ElectronicConfig() {
     setMessage(`Configuración electrónica de ${element.name} (Z = ${number}) calculada.`)
     setPropertiesLoading(true)
 
+    let explanationText = ''
     try {
       const answer = await askModel('/electronic-config', [
         `Elemento: ${element.name}`,
@@ -290,7 +291,8 @@ export function ElectronicConfig() {
         `Configuración electrónica: ${config}`,
         'Explica qué significa la configuración electrónica y cómo se construyó, paso a paso, usando el orden de llenado y la capacidad de cada orbital. Muestra cómo la distribución corresponde al número atómico y qué indica sobre los electrones externos y las propiedades químicas del elemento. Basa la explicación en la configuración proporcionada; no la cambies ni inventes datos. Usa lenguaje claro para un estudiante y no hagas preguntas.',
       ].join('\n'))
-      if (requestId === requestRef.current) setProperties(cleanExplanation(answer))
+      explanationText = cleanExplanation(answer)
+      if (requestId === requestRef.current) setProperties(explanationText)
     } catch (error) {
       if (requestId === requestRef.current) {
         setPropertiesError(
@@ -307,11 +309,17 @@ export function ElectronicConfig() {
     if (token) {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       try {
-        await fetch(`${apiUrl.replace(/\/$/, '')}/history`, {
+        // El backend espera los mismos campos que el historial del balanceador
+        const response = await fetch(`${apiUrl.replace(/\/$/, '')}/history`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ configuracion: `${element.name}: ${config}`, numero_atomico: number }),
+          body: JSON.stringify({
+            ecuacion: `Configuración electrónica: ${element.name} (Z = ${number})`,
+            resultado: config,
+            explicacion: explanationText || undefined,
+          }),
         })
+        if (response.ok) window.dispatchEvent(new Event('chemistry-history-updated'))
       } catch {
         // El resultado sigue disponible aunque no se guarde el historial.
       }
