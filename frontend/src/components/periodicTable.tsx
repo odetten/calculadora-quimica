@@ -185,7 +185,7 @@ export function PeriodicTable({ contents, canAdd, onAddReagent }: PeriodicTableP
     <div>
       <p className="mb-3 text-center text-sm text-slate-600">Toca un elemento para ver sus propiedades.</p>
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="overflow-hidden pl-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
         <div
           className="mx-auto grid min-w-[58rem] max-w-6xl gap-1"
           style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))', gridTemplateRows: 'repeat(7, auto) 0.75rem repeat(2, auto)' }}

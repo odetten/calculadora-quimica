@@ -7,13 +7,14 @@ import { AuthPage, type AuthMode } from './routes/auth.tsx'
 import { ExperimentPage } from './routes/experimentar.tsx'
 import { HistoryPage } from './routes/history.tsx'
 import { LandingPage } from './routes/landing.tsx'
+import { ProfilePage } from './routes/profile.tsx'
 import { Quimica1Page } from './routes/quimica1.tsx'
 import { Quimica2Page } from './routes/quimica2.tsx'
 import { Balance } from './tools/balance.tsx'
 import { ElectronicConfig } from './tools/electronic-config.tsx'
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'landing' | 'auth' | 'history' | 'experimentar' | CourseId>('landing')
+  const [screen, setScreen] = useState<'home' | 'landing' | 'auth' | 'history' | 'profile' | 'experimentar' | CourseId>('landing')
   const [authMode, setAuthMode] = useState<AuthMode>('login')
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(localStorage.getItem('quimica-token')),
@@ -22,6 +23,19 @@ function App() {
 
   const handleAuthChange = useCallback((authenticated: boolean) => {
     setIsAuthenticated(authenticated)
+  }, [])
+
+  const handleSessionExpired = useCallback(() => {
+    localStorage.removeItem('quimica-token')
+    setIsAuthenticated(false)
+    setScreen('landing')
+  }, [])
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('quimica-token')
+    setIsAuthenticated(false)
+    setScreen('home')
+    window.scrollTo({ top: 0 })
   }, [])
 
   const openAuth = (mode: AuthMode) => {
@@ -41,10 +55,13 @@ function App() {
       <Header
         isAuthenticated={isAuthenticated}
         onLoginClick={() => openAuth('login')}
-        onLogoutClick={() => {
-          localStorage.removeItem('quimica-token')
-          setIsAuthenticated(false)
-          setScreen('home')
+        onProfileClick={() => {
+          if (!isAuthenticated) {
+            openAuth('login')
+            return
+          }
+          setScreen('profile')
+          window.scrollTo({ top: 0 })
         }}
         onCalculatorSelect={(calculator) => {
           setActiveCalculator(calculator)
@@ -80,6 +97,16 @@ function App() {
         />
       ) : screen === 'history' ? (
         <HistoryPage onBack={() => setScreen('home')} />
+      ) : screen === 'profile' ? (
+        isAuthenticated ? (
+          <ProfilePage
+            onBack={() => setScreen('home')}
+            onSessionExpired={handleSessionExpired}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <LandingPage onStart={() => openAuth('login')} />
+        )
       ) : screen === 'experimentar' ? (
         <ExperimentPage onBack={() => setScreen('home')} />
       ) : screen === 'quimica-1' ? (
