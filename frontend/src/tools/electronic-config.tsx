@@ -687,7 +687,8 @@ export function ElectronicConfig() {
             </div>
           </div>
 
-          <div className="-mx-2 mt-4 max-h-96 overflow-y-auto px-2 lg:max-h-[calc(100vh-17rem)]">
+          {/* relative: los textos sr-only (posición absoluta) de la lista se quedan dentro de su scroll en lugar de alargar la página */}
+          <div className="relative -mx-2 mt-4 max-h-96 overflow-y-auto px-2 lg:max-h-[calc(100vh-17rem)]">
             {visibleGroups.map((group) => (
               <section key={group.category} className="mb-4 last:mb-0" aria-labelledby={`group-${group.category}`}>
                 <h3
