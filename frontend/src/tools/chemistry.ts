@@ -157,3 +157,15 @@ export const balanceEquation = (equation: string) => {
 
   return `${formatSide(reactants, 0)} → ${formatSide(products, reactants.length)}`
 }
+
+// Cuenta los átomos de cada elemento en un lado de la ecuación, ya multiplicados por sus coeficientes
+export const countAtoms = (side: string) => {
+  const totals: Record<string, number> = {}
+  for (const compound of side.split('+')) {
+    const coefficient = Number(normalizeFormula(compound.trim()).match(/^\d+/)?.[0] ?? 1)
+    for (const [element, amount] of Object.entries(parseCompound(compound))) {
+      totals[element] = (totals[element] || 0) + amount * coefficient
+    }
+  }
+  return totals
+}

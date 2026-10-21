@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent } from 'react'
-import { balanceEquation } from './chemistry.ts'
+import { Fragment, useRef, useState, type FormEvent } from 'react'
+import { Check, CheckCircle2, LayoutGrid, Scale } from 'lucide-react'
+import { balanceEquation, countAtoms } from './chemistry.ts'
 import { extractElements } from './elements.ts'
 
 const periodicRows: Array<Array<string | null>> = [
@@ -104,10 +105,42 @@ function FormulaPreview({ value }: { value: string }) {
   )
 }
 
+// Ecuación balanceada con los coeficientes resaltados, p. ej. "4Fe + 3O_2 → 2Fe_2O_3"
+function BalancedEquation({ value }: { value: string }) {
+  return (
+    <>
+      <span className="sr-only">{value.replace(/_/g, '')}</span>
+      {value.split(' → ').map((side, sideIndex) => (
+        <Fragment key={sideIndex}>
+          {sideIndex === 1 && <span className="balance-arrow" aria-hidden="true">→</span>}
+          {side.split(' + ').map((term, termIndex) => {
+            const [, coefficient, formula] = term.match(/^(\d*)(.*)$/) ?? ['', '', term]
+            return (
+              <Fragment key={termIndex}>
+                {termIndex > 0 && <span className="balance-plus" aria-hidden="true">+</span>}
+                <span className="whitespace-nowrap" aria-hidden="true">
+                  {coefficient && <span className="balance-coefficient">{coefficient}</span>}
+                  <FormulaPreview value={formula} />
+                </span>
+              </Fragment>
+            )
+          })}
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+function atomCheck(balanced: string) {
+  const [left, right] = balanced.split(' → ').map(countAtoms)
+  return Object.keys(left).map((element) => ({ element, left: left[element], right: right[element] ?? 0 }))
+}
+
 export function Balance() {
   const [reactants, setReactants] = useState('Fe + O_2')
   const [products, setProducts] = useState('Fe_2O_3')
   const [message, setMessage] = useState('Completa la ecuación y encuentra sus coeficientes.')
+  const [messageIsError, setMessageIsError] = useState(false)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
   const [activeInput, setActiveInput] = useState<'reactants' | 'products'>('reactants')
   const [balancedResult, setBalancedResult] = useState('')
@@ -120,7 +153,7 @@ export function Balance() {
   const [previousResults, setPreviousResults] = useState<Array<{ input: string; balanced: string }>>([])
   const reactantsRef = useRef<HTMLInputElement>(null)
   const productsRef = useRef<HTMLInputElement>(null)
-  const equationSectionRef = useRef<HTMLElement>(null)
+  const equationCardRef = useRef<HTMLFormElement>(null)
 
   const getInputWidth = (value: string) => `${Math.max(value.replace(/_/g, '').length + 1, 8)}ch`
 
@@ -142,6 +175,7 @@ export function Balance() {
       result = balanceEquation(equation)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo balancear la ecuación.')
+      setMessageIsError(true)
       return
     }
 
@@ -151,6 +185,7 @@ export function Balance() {
       ...previous,
     ].slice(0, 3))
     setMessage('Balance encontrado con los menores coeficientes enteros.')
+    setMessageIsError(false)
     setExplanationLoading(true)
     setApplicationsLoading(true)
     let explanationText = ''
@@ -217,15 +252,16 @@ export function Balance() {
   }
 
   const focusEquation = () => {
-    requestAnimationFrame(() => equationSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    requestAnimationFrame(() => equationCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
   }
 
-  const loadEquationIdea = (idea: (typeof equationIdeas)[number]) => {
-    setReactants(idea.reactants)
-    setProducts(idea.products)
+  const loadEquation = (nextReactants: string, nextProducts: string, label: string) => {
+    setReactants(nextReactants)
+    setProducts(nextProducts)
     clearResults()
     setKeyboardOpen(false)
-    setMessage(`Cargada: ${idea.label}. Pulsa «Balancear ecuación».`)
+    setMessage(`Cargada: ${label}. Pulsa «Balancear ecuación».`)
+    setMessageIsError(false)
   }
 
   const insertElement = (element: string) => {
@@ -287,14 +323,15 @@ export function Balance() {
     inputRef: React.RefObject<HTMLInputElement | null>,
     align: 'left' | 'right',
   ) => (
-    <label className={`formula-editor ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
+    // En el celular los dos campos van uno debajo del otro, así que ambos se alinean a la izquierda
+    <label className={`formula-editor ${align === 'right' ? 'justify-start sm:justify-end' : 'justify-start'}`}>
       <span className="sr-only">{name === 'reactants' ? 'Reactivos' : 'Productos'}</span>
-      <span className={`formula-preview ${align === 'right' ? 'text-right' : 'text-left'}`}>
+      <span className={`formula-preview ${align === 'right' ? 'text-left sm:text-right' : 'text-left'}`}>
         {value && <FormulaPreview value={value} />}
       </span>
       <input
         ref={inputRef}
-        className={`formula-input formula-input-editable ${align === 'right' ? 'text-right' : 'text-left'}`}
+        className={`formula-input formula-input-editable ${align === 'right' ? 'text-left sm:text-right' : 'text-left'}`}
         style={{ width: getInputWidth(value) }}
         value={value}
         onFocus={() => {
@@ -313,6 +350,8 @@ export function Balance() {
     </label>
   )
 
+  const atoms = balancedResult ? atomCheck(balancedResult) : []
+
   return (
     <>
       {/* <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-7 sm:px-10">
@@ -323,15 +362,183 @@ export function Balance() {
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-600">Balanceador</span>
       </header> */}
 
-      <section id="balanceador" ref={equationSectionRef} className="equation-section mx-auto flex min-h-[calc(100vh-104px)] w-full max-w-[1600px] scroll-mt-20 flex-col justify-center px-6 pb-16 pt-10 sm:px-10">
-        <div className="mb-14 flex w-full flex-col items-center text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-teal-700"></p>
-          <h1 className="font-display text-5xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-7xl">Equilibra tu ecuación.</h1>
-          <p className="mt-6 max-w-2xl self-center text-center text-base leading-7 text-slate-600">Introduce los reactivos y productos para comenzar a resolver el balance quimico.</p>
+      <section id="balanceador" className="equation-section mx-auto w-full max-w-[1600px] scroll-mt-20 px-6 pb-16 pt-6 sm:px-10">
+        <div className="mb-8 flex w-full flex-col items-start text-left">
+          <span className="balance-eyebrow">
+            <Scale size={14} aria-hidden="true" />
+            Calculadora · Balanceo químico
+          </span>
+          <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            Equilibra tu <span className="text-teal-700">ecuación</span>.
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">Introduce los reactivos y productos para comenzar a resolver el balance quimico.</p>
         </div>
 
         <div className="equation-workspace grid w-full gap-8 xl:grid-cols-[minmax(220px,1fr)_minmax(0,900px)_minmax(220px,1fr)]">
-          <aside className={`ideas-card h-fit xl:self-center xl:col-start-1 xl:row-start-1 ${keyboardOpen ? 'xl:-translate-y-[10vh]' : 'xl:-translate-y-[2vh]'}`} aria-labelledby="equation-ideas-title">
+          <div className="min-w-0 xl:col-start-2 xl:row-start-1">
+            <form ref={equationCardRef} onSubmit={handleSubmit} className="balance-card scroll-mt-24">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-5">
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <span className="balance-side-label">Reactivos</span>
+                  {renderInput(reactants, setReactants, 'reactants', reactantsRef, 'right')}
+                </div>
+                <span className="balance-arrow-badge" aria-hidden="true">
+                  <svg className="size-6 rotate-90 sm:rotate-0" viewBox="0 0 48 24" fill="none">
+                    <path d="M1 12h44M35 3l10 9-10 9" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <span className="balance-side-label">Productos</span>
+                  {renderInput(products, setProducts, 'products', productsRef, 'left')}
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+                <span>
+                  Usa <kbd className="balance-kbd">_</kbd> seguido de un número para escribir subíndices.
+                </span>
+                <button
+                  type="button"
+                  className="balance-tool-button"
+                  aria-expanded={keyboardOpen}
+                  aria-controls="periodic-keyboard"
+                  onClick={() => setKeyboardOpen((open) => !open)}
+                >
+                  <LayoutGrid size={14} aria-hidden="true" />
+                  {keyboardOpen ? 'Ocultar tabla' : 'Mostrar tabla periódica'}
+                </button>
+              </div>
+
+              <aside
+                id="periodic-keyboard"
+                className={`periodic-keyboard ${keyboardOpen ? 'periodic-keyboard-open' : ''}`}
+                aria-label="Teclado de la tabla periódica"
+                aria-hidden={!keyboardOpen}
+              >
+                <div className="w-full px-4 py-4 sm:px-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Insertar elemento</p>
+                      <p className="mt-1 text-xs text-slate-600">Campo activo: {activeInput === 'reactants' ? 'reactivos' : 'productos'}</p>
+                    </div>
+                    <button type="button" className="keyboard-close" onClick={() => setKeyboardOpen(false)} aria-label="Cerrar teclado">&#215;</button>
+                  </div>
+                  <div className="element-controls mb-4" aria-label="Controles del input">
+                    <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => insertElement('+')} title="Agregar signo más" aria-label="Agregar signo más">+</button>
+                    <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('previous')} title="Ir al input anterior" aria-label="Ir al input anterior">&#8592;</button>
+                    <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('next')} title="Ir al input siguiente" aria-label="Ir al input siguiente">&#8594;</button>
+                    <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={removePreviousCharacter} title="Borrar carácter anterior" aria-label="Borrar carácter anterior">&#9003;</button>
+                  </div>
+                  <div className="mb-4 flex flex-wrap gap-x-3 gap-y-2" aria-label="Leyenda de familias de elementos">
+                    {elementGroupLabels.map(([group, label]) => (
+                      <span key={group} className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                        <span className={`element-legend-swatch element-group-${group}`} aria-hidden="true" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="overflow-x-auto pb-1">
+                    <div className="periodic-grid min-w-[620px]">
+                      {periodicRows.flatMap((row, rowIndex) => row.map((element, columnIndex) => element ? (
+                        <button
+                          key={`${rowIndex}-${columnIndex}`}
+                          type="button"
+                          className={`element-key element-group-${getElementGroup(element)}`}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => insertElement(element === '*' ? 'La' : element === '**' ? 'Ac' : element)}
+                          aria-label={`Insertar ${element}`}
+                        >
+                          {element}
+                        </button>
+                      ) : <span key={`${rowIndex}-${columnIndex}`} />))}
+                    </div>
+                  </div>
+                </div>
+              </aside>
+
+              <div className="mt-6 flex flex-col items-start justify-between gap-4 border-t border-slate-100 pt-5 sm:flex-row sm:items-center">
+                <p className={`text-sm ${messageIsError ? 'font-medium text-red-700' : 'text-slate-600'}`} aria-live="polite">{message}</p>
+                <button type="submit" className="button-primary shrink-0 disabled:cursor-wait disabled:opacity-60" disabled={explanationLoading || applicationsLoading}>
+                  Balancear ecuación
+                  <span aria-hidden="true">&#8594;</span>
+                </button>
+              </div>
+            </form>
+
+            {balancedResult && (
+              <>
+                <div key={balancedResult} className="result-panel lab-pop" aria-live="polite">
+                  <span className="result-label">
+                    <CheckCircle2 size={16} aria-hidden="true" />
+                    Ecuación balanceada
+                  </span>
+                  <p className="result-equation mt-3">
+                    <BalancedEquation value={balancedResult} />
+                  </p>
+                  <div className="mt-5 border-t border-teal-100 pt-4">
+                    <p className="text-xs font-semibold text-slate-700">Átomos en cada lado</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {atoms.map(({ element, left, right }) => (
+                        <li key={element} className="balance-atom-chip">
+                          <span className="font-semibold text-teal-800">{element}</span>
+                          <span className="tabular-nums">{left} = {right}</span>
+                          <Check size={14} className="text-teal-600" aria-hidden="true" />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <section className="ai-explanation" aria-label="Desglose paso a paso" aria-live="polite" aria-busy={explanationLoading}>
+                  <div className="ai-explanation-heading">
+                    <span className="ai-status-dot" aria-hidden="true" />
+                    Desglose paso a paso
+                    <span className="ai-model-badge">Llama 3.1 · 8B</span>
+                  </div>
+                  {explanationLoading && (
+                    <p className="ai-explanation-text flex items-center gap-2">
+                      <span className="size-4 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600 motion-reduce:animate-none" aria-hidden="true" />
+                      Analizando la ecuación y preparando los pasos…
+                    </p>
+                  )}
+                  {explanationError && <p className="ai-explanation-text text-amber-800">{explanationError}</p>}
+                  {explanation && <p className="ai-explanation-text whitespace-pre-wrap">{explanation}</p>}
+                </section>
+
+                <section className="ai-explanation" aria-label="Aplicaciones de los elementos" aria-live="polite" aria-busy={applicationsLoading}>
+                  <div className="ai-explanation-heading">
+                    <span className="ai-status-dot" aria-hidden="true" />
+                    Aplicaciones de los elementos
+                    <span className="ai-model-badge">Llama 3.1 · 8B</span>
+                  </div>
+                  {applicationsLoading && (
+                    <p className="ai-explanation-text flex items-center gap-2">
+                      <span className="size-4 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600 motion-reduce:animate-none" aria-hidden="true" />
+                      Buscando las aplicaciones de cada elemento…
+                    </p>
+                  )}
+                  {applicationsError && <p className="ai-explanation-text text-amber-800">{applicationsError}</p>}
+                  {applications && (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {applications.split(/\n\s*\n/).map((block, index) => {
+                        const [title, ...rest] = block.split('\n')
+                        return (
+                          <div key={index} className="rounded-2xl border border-violet-100 bg-violet-50/40 px-4 py-3">
+                            <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+                            {rest.length > 0 && (
+                              <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">{rest.join('\n')}</p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+          </div>
+
+          <aside className="ideas-card h-fit xl:col-start-1 xl:row-start-1" aria-labelledby="equation-ideas-title">
             <div className="mb-4">
               <p className="ideas-eyebrow">Para practicar</p>
               <h2 id="equation-ideas-title" className="mt-1 text-lg font-semibold tracking-tight text-slate-900">Ideas de ecuaciones</h2>
@@ -340,7 +547,12 @@ export function Balance() {
             <ul className="grid gap-2">
               {equationIdeas.map((idea) => (
                 <li key={idea.label}>
-                  <button type="button" className="idea-button" onClick={() => loadEquationIdea(idea)}>
+                  <button
+                    type="button"
+                    className="idea-button"
+                    aria-current={idea.reactants === reactants && idea.products === products}
+                    onClick={() => loadEquation(idea.reactants, idea.products, idea.label)}
+                  >
                     <span className="block text-xs font-semibold text-slate-800">{idea.label}</span>
                     <span className="idea-formula mt-1 block">
                       <FormulaPreview value={idea.reactants} />
@@ -353,160 +565,44 @@ export function Balance() {
             </ul>
           </aside>
 
-          <div className="min-w-0 xl:col-start-2 xl:row-start-1">
-            <form onSubmit={handleSubmit} className="w-full">
-              <div className="equation-shell flex w-full items-center justify-center gap-3 border-y-2 border-slate-400 py-8 sm:gap-7 sm:py-12">
-                {renderInput(reactants, setReactants, 'reactants', reactantsRef, 'right')}
-                <span className="shrink-0 text-teal-700" aria-hidden="true">
-                  <svg className="size-8 sm:size-11" viewBox="0 0 48 24" fill="none">
-                    <path d="M1 12h44M35 3l10 9-10 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                {renderInput(products, setProducts, 'products', productsRef, 'left')}
-              </div>
-
-              <div className="mt-5 flex items-center justify-between text-xs text-slate-600">
-                <span>Usa _ seguido de un numero para escribir subindices.</span>
-                <button type="button" className="keyboard-toggle" onClick={() => setKeyboardOpen((open) => !open)}>
-                  {keyboardOpen ? 'Ocultar tabla' : 'Mostrar tabla periódica'}
-                </button>
-              </div>
-
-              <div className="mt-7 flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
-                <p className="text-sm text-slate-600" aria-live="polite">{message}</p>
-                <button type="submit" className="button-primary disabled:cursor-wait disabled:opacity-60" disabled={explanationLoading || applicationsLoading}>
-                  Balancear ecuación
-                  <span aria-hidden="true">&#8594;</span>
-                </button>
-              </div>
-              {balancedResult && (
-                <>
-                  <div className="result-panel" aria-live="polite">
-                    <span className="result-label">Ecuación balanceada</span>
-                    <span className="result-equation">
-                      {balancedResult.split(' → ').map((side, index) => (
-                        <span key={side}>
-                          <FormulaPreview value={side} />
-                          {index === 0 && <span className="mx-3 text-teal-700">→</span>}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-
-                  <section className="ai-explanation" aria-label="Desglose paso a paso" aria-live="polite" aria-busy={explanationLoading}>
-                    <div className="ai-explanation-heading">
-                      <span className="ai-status-dot" aria-hidden="true" />
-                      Desglose paso a paso
-                      <span className="ai-model-badge">Llama 3.1 · 8B</span>
-                    </div>
-                    {explanationLoading && <p className="ai-explanation-text">Analizando la ecuación y preparando los pasos…</p>}
-                    {explanationError && <p className="ai-explanation-text text-amber-800">{explanationError}</p>}
-                    {explanation && <p className="ai-explanation-text whitespace-pre-wrap">{explanation}</p>}
-                  </section>
-
-                  <section className="ai-explanation mt-4" aria-label="Aplicaciones de los elementos" aria-live="polite" aria-busy={applicationsLoading}>
-                    <div className="ai-explanation-heading">
-                      <span className="ai-status-dot" aria-hidden="true" />
-                      Aplicaciones de los elementos
-                      <span className="ai-model-badge">Llama 3.1 · 8B</span>
-                    </div>
-                    {applicationsLoading && <p className="ai-explanation-text">Buscando las aplicaciones de cada elemento…</p>}
-                    {applicationsError && <p className="ai-explanation-text text-amber-800">{applicationsError}</p>}
-                    {applications && (
-                      <div className="mt-3 space-y-4">
-                        {applications.split(/\n\s*\n/).map((block, index) => {
-                          const [title, ...rest] = block.split('\n')
-                          return (
-                            <div key={index}>
-                              <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-                              {rest.length > 0 && (
-                                <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-slate-600">{rest.join('\n')}</p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </section>
-                </>
+          <section className="ideas-card h-fit xl:col-start-3 xl:row-start-1" aria-labelledby="previous-results-title">
+            <div className="mb-4">
+              <p className="ideas-eyebrow">Historial rápido</p>
+              <h2 id="previous-results-title" className="mt-1 text-lg font-semibold tracking-tight text-slate-900">Resultados anteriores</h2>
+              {previousResults.length > 0 && (
+                <p className="mt-1 text-xs text-slate-600">
+                  {previousResults.length} {previousResults.length === 1 ? 'reciente' : 'recientes'} · tócalo para cargarlo
+                </p>
               )}
-            </form>
-
-            <aside className={`periodic-keyboard ${keyboardOpen ? 'periodic-keyboard-open' : ''}`} aria-label="Teclado de la tabla periódica" aria-hidden={!keyboardOpen}>
-              <div className="w-full px-4 py-4 sm:px-6">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Insertar elemento</p>
-                    <p className="mt-1 text-xs text-slate-600">Campo activo: {activeInput === 'reactants' ? 'reactivos' : 'productos'}</p>
-                  </div>
-                  <button type="button" className="keyboard-close" onClick={() => setKeyboardOpen(false)} aria-label="Cerrar teclado">&#215;</button>
-                </div>
-                <div className="element-controls mb-4" aria-label="Controles del input">
-                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => insertElement('+')} title="Agregar signo más" aria-label="Agregar signo más">+</button>
-                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('previous')} title="Ir al input anterior" aria-label="Ir al input anterior">&#8592;</button>
-                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={() => moveBetweenInputs('next')} title="Ir al input siguiente" aria-label="Ir al input siguiente">&#8594;</button>
-                  <button type="button" className="element-control" onMouseDown={(event) => event.preventDefault()} onClick={removePreviousCharacter} title="Borrar carácter anterior" aria-label="Borrar carácter anterior">&#9003;</button>
-                </div>
-                <div className="mb-4 flex flex-wrap gap-x-3 gap-y-2" aria-label="Leyenda de familias de elementos">
-                  {elementGroupLabels.map(([group, label]) => (
-                    <span key={group} className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                      <span className={`element-legend-swatch element-group-${group}`} aria-hidden="true" />
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                <div className="overflow-x-auto pb-1">
-                  <div className="periodic-grid min-w-[620px]">
-                    {periodicRows.flatMap((row, rowIndex) => row.map((element, columnIndex) => element ? (
+            </div>
+            {previousResults.length > 0 ? (
+              <ul className="grid gap-2">
+                {previousResults.map((item, index) => {
+                  const [itemReactants, itemProducts] = item.input.split(' -> ')
+                  return (
+                    <li key={`${item.input}-${index}`}>
                       <button
-                        key={`${rowIndex}-${columnIndex}`}
                         type="button"
-                        className={`element-key element-group-${getElementGroup(element)}`}
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => insertElement(element === '*' ? 'La' : element === '**' ? 'Ac' : element)}
-                        aria-label={`Insertar ${element}`}
+                        className="idea-button"
+                        onClick={() => loadEquation(itemReactants, itemProducts, 'ecuación anterior')}
                       >
-                        {element}
+                        <span className="idea-formula block truncate text-slate-500">
+                          <FormulaPreview value={itemReactants} />
+                          <span className="mx-1 text-teal-700">→</span>
+                          <FormulaPreview value={itemProducts} />
+                        </span>
+                        <span className="balance-recent-equation mt-1 block truncate">
+                          <BalancedEquation value={item.balanced} />
+                        </span>
                       </button>
-                    ) : <span key={`${rowIndex}-${columnIndex}`} />))}
-                  </div>
-                </div>
-              </div>
-            </aside>
-
-            <section className="mt-10 w-full border-t border-slate-200 pt-6" aria-labelledby="previous-results-title">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 id="previous-results-title" className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">Resultados anteriores</h2>
-                {previousResults.length > 0 && <span className="text-xs text-slate-600">{previousResults.length} recientes</span>}
-              </div>
-              {previousResults.length > 0 ? (
-                <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {previousResults.map((item, index) => (
-                    <li key={`${item.input}-${index}`} className="rounded-xl border border-slate-200 bg-white/70 px-4 py-3">
-                      <p className="truncate text-xs text-slate-600">
-                        {item.input.split(' -> ').map((side, sideIndex) => (
-                          <span key={`${side}-${sideIndex}`}>
-                            <FormulaPreview value={side} />
-                            {sideIndex === 0 && <span className="mx-1 text-teal-700">→</span>}
-                          </span>
-                        ))}
-                      </p>
-                      <p className="result-equation mt-1 text-base">
-                        {item.balanced.split(' → ').map((side, sideIndex) => (
-                          <span key={`${side}-${sideIndex}`}>
-                            <FormulaPreview value={side} />
-                            {sideIndex === 0 && <span className="mx-2 text-teal-700">→</span>}
-                          </span>
-                        ))}
-                      </p>
                     </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-slate-600">Tus ecuaciones balanceadas aparecerán aquí.</p>
-              )}
-            </section>
-          </div>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="text-xs leading-5 text-slate-600">Tus ecuaciones balanceadas aparecerán aquí.</p>
+            )}
+          </section>
         </div>
       </section>
     </>

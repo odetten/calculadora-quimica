@@ -40,7 +40,7 @@
 }
 
 .periodic-keyboard {
-  @apply mt-8 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-sm;
+  @apply mt-5 w-full overflow-hidden rounded-2xl border border-slate-200 bg-stone-50/70;
   display: none;
 }
 
@@ -120,7 +120,7 @@
 }
 
 .ideas-card {
-  @apply rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur-sm;
+  @apply rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur-sm;
 }
 
 .ideas-eyebrow {
@@ -128,7 +128,11 @@
 }
 
 .idea-button {
-  @apply w-full rounded-xl border border-slate-200 bg-stone-50/90 px-3 py-3 text-left transition hover:border-teal-300 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
+  @apply w-full rounded-2xl border border-slate-200 bg-stone-50/90 px-3.5 py-3 text-left transition hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
+}
+
+.idea-button[aria-current='true'] {
+  @apply border-teal-500 bg-teal-50 ring-1 ring-teal-500 ring-inset;
 }
 
 .category-chip {
@@ -146,6 +150,65 @@
 
 .category-option[aria-pressed='true'] {
   @apply font-semibold text-teal-900;
+}
+
+/* Balanceador */
+.balance-eyebrow {
+  @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50/90 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-800;
+}
+
+.balance-card {
+  @apply rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur-sm sm:p-8;
+}
+
+.balance-side-label {
+  @apply text-xs font-semibold uppercase tracking-[0.16em] text-slate-500;
+}
+
+.balance-arrow-badge {
+  @apply grid size-12 shrink-0 place-items-center self-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200 sm:mb-1.5;
+}
+
+.balance-kbd {
+  @apply rounded-md border border-slate-300 bg-stone-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-800;
+}
+
+.balance-tool-button {
+  @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-3.5 py-2 text-xs font-semibold text-teal-800 transition hover:border-teal-500 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
+}
+
+.balance-tool-button[aria-expanded='true'] {
+  @apply border-teal-700 bg-teal-700 text-white hover:bg-teal-800;
+}
+
+.balance-coefficient {
+  @apply mr-0.5 font-bold text-teal-700;
+}
+
+.balance-arrow {
+  @apply text-teal-600;
+}
+
+.balance-plus {
+  @apply text-slate-400;
+}
+
+.balance-recent-equation {
+  @apply text-base font-semibold tracking-tight text-slate-900;
+  font-family: var(--font-display);
+}
+
+.balance-recent-equation sub {
+  @apply align-baseline text-[0.62em];
+}
+
+.balance-recent-equation .balance-arrow,
+.balance-recent-equation .balance-plus {
+  @apply mx-1;
+}
+
+.balance-atom-chip {
+  @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-3 py-1 text-sm text-slate-700 shadow-sm;
 }
 
 /* Configuración electrónica */
@@ -244,15 +307,15 @@
 }
 
 .result-panel {
-  @apply mt-8 flex flex-col gap-2 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between;
+  @apply mt-6 rounded-3xl border border-teal-200 bg-linear-to-br from-teal-50 via-white to-white px-6 py-5 shadow-sm;
 }
 
 .result-label {
-  @apply text-xs font-semibold uppercase tracking-[0.16em] text-teal-700;
+  @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-teal-700;
 }
 
 .result-equation {
-  @apply text-xl font-medium tracking-tight text-slate-900 sm:text-2xl;
+  @apply flex flex-wrap items-baseline gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl;
   font-family: var(--font-display);
 }
 
@@ -261,11 +324,11 @@
 }
 
 .ai-explanation {
-  @apply mt-4 rounded-2xl border border-violet-200/80 bg-white/90 px-5 py-4 shadow-sm backdrop-blur-sm;
+  @apply mt-4 rounded-3xl border border-violet-200/80 bg-white/90 px-6 py-5 shadow-sm backdrop-blur-sm;
 }
 
 .ai-explanation-heading {
-  @apply flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-800;
+  @apply flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-800;
 }
 
 .ai-status-dot {
