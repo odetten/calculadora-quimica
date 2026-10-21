@@ -1,13 +1,14 @@
 import { useEffect, useState, type ComponentType, type CSSProperties, type DragEvent } from 'react'
 import { PeriodicTable } from '../components/periodicTable.tsx'
-import { findReaction, REACTIONS, REAGENTS, type Reaction, type ReactionEffect, type Reagent } from '../tools/reactions.ts'
+import { findReaction } from '../tools/mixtures.ts'
+import { REACTIONS, REAGENTS, type Reaction, type ReactionEffect, type Reagent } from '../tools/reactions.ts'
 
 type Phase = 'idle' | 'mixing' | 'reacted'
 type TabId = 'lab' | 'tabla'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'lab', label: 'Laboratorio' },
-  { id: 'tabla', label: 'Tabla periódica interactiva' },
+  { id: 'tabla', label: 'Tabla periódica' },
 ]
 
 const SPARK_COUNT = 16
@@ -89,7 +90,8 @@ function Flask({ contents, phase, reaction }: { contents: string[]; phase: Phase
   const mixed = phase !== 'idle'
   const reacted = phase === 'reacted'
   const exploded = reacted && reaction?.effect === 'explosion'
-  const layerHeight = reacted ? 18 : 30
+  // Si no hay reacción no se consume nada: el vaso conserva el nivel y los colores
+  const layerHeight = reacted && reaction?.effect !== 'none' ? 18 : 30
 
   return (
     <div className={`relative h-56 w-40 ${phase === 'mixing' ? 'lab-wobble' : ''} ${exploded ? 'lab-burst' : ''}`}>
@@ -101,7 +103,7 @@ function Flask({ contents, phase, reaction }: { contents: string[]; phase: Phase
               className="w-full transition-[height,background-color] duration-[1200ms] ease-out"
               style={{
                 height: `${(layerHeight / 100) * 14}rem`,
-                backgroundColor: mixed && reaction ? reaction.resultColor : reagentById(id)?.color,
+                backgroundColor: mixed && reaction?.resultColor ? reaction.resultColor : reagentById(id)?.color,
                 opacity: 0.9,
               }}
             />
@@ -363,7 +365,8 @@ function DarkeningEffect() {
   )
 }
 
-function WhiteSmokeEffect() {
+function WhiteSmokeEffect({ reaction }: { reaction: Reaction }) {
+  const tint = reaction.smokeColor
   const puffs = Array.from({ length: 12 }, (_, i) => ({
     x: -40 + (i % 8) * 15,
     delay: (i * 0.2) % 1.5,
@@ -375,9 +378,10 @@ function WhiteSmokeEffect() {
       {puffs.map((puff, i) => (
         <span
           key={i}
-          className="pointer-events-none absolute left-1/2 top-[35%] size-16 rounded-full bg-gradient-to-t from-gray-200/0 to-white/40 blur-xl"
+          className={`pointer-events-none absolute left-1/2 top-[35%] size-16 rounded-full blur-xl ${tint ? '' : 'bg-gradient-to-t from-gray-200/0 to-white/40'}`}
           style={{
             marginLeft: puff.x,
+            backgroundImage: tint ? `linear-gradient(to top, transparent, ${tint}99)` : undefined,
             animation: `lab-puff 2s ease-out forwards`,
             animationDelay: `${puff.delay}s`,
           } as CSSProperties}
@@ -387,7 +391,11 @@ function WhiteSmokeEffect() {
   )
 }
 
-const EFFECT_VIEWS: Record<ReactionEffect, ComponentType> = {
+function NoReactionEffect() {
+  return null
+}
+
+const EFFECT_VIEWS: Record<ReactionEffect, ComponentType<{ reaction: Reaction }>> = {
   explosion: Explosion,
   water: WaterEffect,
   salt: SaltEffect,
@@ -399,6 +407,7 @@ const EFFECT_VIEWS: Record<ReactionEffect, ComponentType> = {
   colorchange: ColorChangeEffect,
   darkening: DarkeningEffect,
   whitesmoke: WhiteSmokeEffect,
+  none: NoReactionEffect,
 }
 
 function ReagentButton({
@@ -504,45 +513,65 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
   const elements = REAGENTS.filter((reagent) => reagent.element)
   const compounds = REAGENTS.filter((reagent) => !reagent.element)
 
+  const reagentButtons = (list: Reagent[]) =>
+    list.map((reagent) => (
+      <ReagentButton
+        key={reagent.id}
+        reagent={reagent}
+        used={contents.includes(reagent.id)}
+        canAdd={canAdd}
+        onAdd={() => addReagent(reagent.id)}
+      />
+    ))
+
   return (
-    <section className="mx-auto w-full max-w-5xl px-6 pb-12 pt-3 sm:px-10">
-      <button type="button" className="mb-2 w-fit text-sm text-slate-600 hover:text-teal-800" onClick={onBack}>
-        ← Volver
-      </button>
-
-      <div className="text-center">
-        <h1 className="font-display text-4xl font-semibold text-slate-950 sm:text-5xl">Laboratorio</h1>
-        <p className="mt-2 text-slate-600">
-          {tab === 'lab' ? 'Combina sustancias y observa qué pasa.' : 'Explora los elementos antes de experimentar.'}
-        </p>
-      </div>
-
-      <div role="tablist" aria-label="Secciones del laboratorio" className="mt-6 flex justify-center gap-2">
-        {TABS.map(({ id, label }) => (
+    <section className="mx-auto w-full max-w-6xl px-5 pb-12 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="flex items-center gap-4">
           <button
-            key={id}
-            id={`tab-${id}`}
             type="button"
-            role="tab"
-            aria-selected={tab === id}
-            aria-controls={`panel-${id}`}
-            onClick={() => setTab(id)}
-            className={`rounded-full border px-5 py-2 transition-colors ${
-              tab === id
-                ? 'border-teal-700 bg-teal-700 text-white'
-                : 'border-slate-300 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50'
-            }`}
+            className="shrink-0 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-600 transition-colors hover:border-teal-300 hover:text-teal-800"
+            onClick={onBack}
           >
-            <span className="text-sm font-semibold">
-              {label}
-              {id === 'lab' && contents.length > 0 ? ` (${contents.length})` : ''}
-            </span>
+            <span className="whitespace-nowrap text-sm">← Volver</span>
           </button>
-        ))}
+          <div>
+            <h1 className="font-display text-2xl font-semibold leading-tight text-slate-950">Laboratorio</h1>
+            <p className="text-sm text-slate-600">
+              {tab === 'lab' ? 'Combina sustancias y observa qué pasa.' : 'Explora los elementos antes de experimentar.'}
+            </p>
+          </div>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Secciones del laboratorio"
+          className="flex gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm"
+        >
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              id={`tab-${id}`}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              aria-controls={`panel-${id}`}
+              onClick={() => setTab(id)}
+              className={`rounded-full px-4 py-1.5 transition-colors ${
+                tab === id ? 'bg-teal-700 text-white' : 'text-slate-700 hover:bg-teal-50'
+              }`}
+            >
+              <span className="text-sm font-semibold">
+                {label}
+                {id === 'lab' && contents.length > 0 ? ` (${contents.length})` : ''}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === 'tabla' && (
-        <div id="panel-tabla" role="tabpanel" aria-labelledby="tab-tabla" className="mt-8">
+        <div id="panel-tabla" role="tabpanel" aria-labelledby="tab-tabla" className="mt-6">
           <PeriodicTable contents={contents} canAdd={canAdd} onAddReagent={addFromTable} />
         </div>
       )}
@@ -552,55 +581,14 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
         role="tabpanel"
         aria-labelledby="tab-lab"
         hidden={tab !== 'lab'}
-        className="mt-8 grid gap-6 md:grid-cols-[16rem_1fr]"
+        className="mt-6 grid gap-5 md:grid-cols-[16rem_1fr] lg:grid-cols-[16rem_20rem_1fr]"
       >
-        <div className="flex flex-col gap-2" aria-label="Reactivos">
+        <div className="flex flex-col gap-2 rounded-3xl border border-slate-200 bg-white/80 p-4" aria-label="Reactivos">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-700">Elementos</h2>
-          <div className="grid grid-cols-2 gap-1.5">
-            {elements.map((reagent) => (
-              <ReagentButton
-                key={reagent.id}
-                reagent={reagent}
-                used={contents.includes(reagent.id)}
-                canAdd={canAdd}
-                onAdd={() => addReagent(reagent.id)}
-              />
-            ))}
-          </div>
-          <h2 className="mt-2 text-xs font-semibold uppercase tracking-wider text-teal-700">Compuestos</h2>
-          <div className="grid grid-cols-2 gap-1.5">
-            {compounds.map((reagent) => (
-              <ReagentButton
-                key={reagent.id}
-                reagent={reagent}
-                used={contents.includes(reagent.id)}
-                canAdd={canAdd}
-                onAdd={() => addReagent(reagent.id)}
-              />
-            ))}
-          </div>
-
-          <h2 className="mt-2 text-xs font-semibold uppercase tracking-wider text-teal-700">Ideas para combinar</h2>
-          <ul className="flex flex-wrap gap-1.5">
-            {REACTIONS.map(({ ids }) => {
-              const [a, b] = ids.map(reagentById)
-              if (!a || !b) return null
-              return (
-                <li key={ids.join('+')}>
-                  <button
-                    type="button"
-                    onClick={() => tryIdea(ids[0], ids[1])}
-                    className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-teal-900 transition-colors hover:border-teal-400 hover:bg-teal-100"
-                  >
-                    <span className="text-xs font-semibold">
-                      {a.formula} + {b.formula}
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-          <p className="text-xs text-slate-500">Toca una idea y se prepara la mezcla en el vaso.</p>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 md:grid-cols-2">{reagentButtons(elements)}</div>
+          {/* En pantallas grandes los compuestos van en la columna derecha */}
+          <h2 className="mt-2 text-xs font-semibold uppercase tracking-wider text-teal-700 lg:hidden">Compuestos</h2>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 md:grid-cols-2 lg:hidden">{reagentButtons(compounds)}</div>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -618,7 +606,7 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
           >
             <div className="absolute inset-x-0 bottom-9 h-1.5 bg-slate-200" aria-hidden="true" />
             <Flask contents={contents} phase={phase} reaction={reaction} />
-            {phase === 'reacted' && EffectView && <EffectView />}
+            {phase === 'reacted' && reaction && EffectView && <EffectView reaction={reaction} />}
           </div>
 
           <p role="status" className="min-h-6 text-center text-sm text-slate-700">
@@ -647,46 +635,86 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
               </button>
             )}
           </div>
-        </div>
-      </div>
 
-      {tab === 'lab' && phase === 'reacted' && showWhy && reaction && (
-        <article id="why-panel" className="lab-pop mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="font-display text-2xl font-semibold text-slate-900">{reaction.title}</h2>
-          <p className="mt-3 rounded-xl bg-teal-50 px-4 py-3 font-mono text-sm text-teal-900">{reaction.equation}</p>
-          {reaction.otherEquations && (
-            <div className="mt-2 text-sm text-slate-600">
-              <p>También pueden formarse otros productos:</p>
-              <ul className="mt-1 space-y-1">
-                {reaction.otherEquations.map((equation) => (
-                  <li key={equation} className="rounded-lg bg-slate-50 px-3 py-1.5 font-mono text-slate-800">
-                    {equation}
-                  </li>
+        </div>
+
+        {/* En pantallas grandes la columna toma el alto de las otras dos y hace scroll por dentro */}
+        <div className="flex flex-col gap-5 md:col-span-2 lg:col-span-1 lg:overflow-y-auto lg:[contain:size]">
+          {phase === 'reacted' && showWhy && reaction ? (
+            <article id="why-panel" className="lab-pop rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="font-display text-2xl font-semibold text-slate-900">{reaction.title}</h2>
+              <p className="mt-3 rounded-xl bg-teal-50 px-4 py-3 font-mono text-sm text-teal-900">{reaction.equation}</p>
+              {reaction.otherEquations && (
+                <div className="mt-2 text-sm text-slate-600">
+                  <p>{reaction.otherLabel ?? 'También pueden formarse otros productos:'}</p>
+                  <ul className="mt-1 space-y-1">
+                    {reaction.otherEquations.map((equation) => (
+                      <li key={equation} className="rounded-lg bg-slate-50 px-3 py-1.5 font-mono text-slate-800">
+                        {equation}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-teal-700">Lo que viste</h3>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-700">
+                {reaction.whatYouSaw.map((line) => (
+                  <li key={line}>{line}</li>
                 ))}
               </ul>
-            </div>
+
+              <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-teal-700">Por qué pasa</h3>
+              <div className="mt-2 space-y-2 text-slate-700">
+                {reaction.why.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
+
+              {reaction.note && (
+                <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <strong>{reaction.noteLabel}: </strong>
+                  {reaction.note}
+                </p>
+              )}
+            </article>
+          ) : (
+            <>
+              <div className="hidden rounded-3xl border border-slate-200 bg-white/80 p-4 lg:block" aria-label="Compuestos">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-700">Compuestos</h2>
+                <div className="mt-2 grid grid-cols-2 gap-1.5 xl:grid-cols-3">{reagentButtons(compounds)}</div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white/80 p-5">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-700">Ideas para combinar</h2>
+                <ul className="mt-3 flex flex-wrap gap-1.5">
+                  {REACTIONS.map(({ ids }) => {
+                    const [a, b] = ids.map(reagentById)
+                    if (!a || !b) return null
+                    return (
+                      <li key={ids.join('+')}>
+                        <button
+                          type="button"
+                          onClick={() => tryIdea(ids[0], ids[1])}
+                          className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-teal-900 transition-colors hover:border-teal-400 hover:bg-teal-100"
+                        >
+                          <span className="text-xs font-semibold">
+                            {a.formula} + {b.formula}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+                <p className="mt-3 text-xs text-slate-500">
+                  Toca una idea y se prepara la mezcla en el vaso. También puedes mezclar cualquier otro par de sustancias:
+                  si no reaccionan, te explicamos por qué.
+                </p>
+              </div>
+            </>
           )}
-
-          <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-teal-700">Lo que viste</h3>
-          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-slate-700">
-            {reaction.whatYouSaw.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-
-          <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-teal-700">Por qué pasa</h3>
-          <div className="mt-2 space-y-2 text-slate-700">
-            {reaction.why.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
-          </div>
-
-          <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <strong>{reaction.noteLabel}: </strong>
-            {reaction.note}
-          </p>
-        </article>
-      )}
+        </div>
+      </div>
     </section>
   )
 }

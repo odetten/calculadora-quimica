@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Atom, ChevronLeft, ChevronRight, FlaskConical, History, LandPlot, Sigma } from 'lucide-react'
 import { CATEGORY_INFO, PERIODIC_ELEMENTS } from '../tools/periodicTable.ts'
-import { REACTIONS } from '../tools/reactions.ts'
+import { MIXTURES, reacts } from '../tools/mixtures.ts'
 
 type Feature = {
   icon: ReactNode
@@ -81,7 +81,7 @@ const features: Feature[] = [
 
 const stats = [
   { value: PERIODIC_ELEMENTS.length, label: 'elementos para explorar en la tabla periódica' },
-  { value: REACTIONS.length, label: 'reacciones que puedes provocar en el laboratorio' },
+  { value: MIXTURES.filter(reacts).length, label: 'reacciones que puedes provocar en el laboratorio' },
   { value: 2, label: 'cursos de química con lecciones y práctica' },
 ]
 

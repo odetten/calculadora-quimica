@@ -1,4 +1,5 @@
-export type ReactionEffect = 'explosion' | 'water' | 'salt' | 'rust' | 'co2' | 'sparkle' | 'effervescence' | 'precipitation' | 'colorchange' | 'darkening' | 'whitesmoke'
+// 'none' es para las mezclas en las que no hay reacción: el vaso se queda como estaba
+export type ReactionEffect = 'explosion' | 'water' | 'salt' | 'rust' | 'co2' | 'sparkle' | 'effervescence' | 'precipitation' | 'colorchange' | 'darkening' | 'whitesmoke' | 'none'
 
 export type Reagent = {
   id: string
@@ -18,16 +19,20 @@ export type Reaction = {
   equation: string
   // Otras ecuaciones balanceadas que también pueden darse con los mismos reactivos
   otherEquations?: string[]
+  // Texto que presenta las otras ecuaciones; por defecto habla de otros productos
+  otherLabel?: string
   effect: ReactionEffect
-  // Color del contenido del vaso al terminar la reacción
-  resultColor: string
+  // Color del contenido del vaso al terminar la reacción; sin él cada sustancia conserva su color
+  resultColor?: string
+  // Color del humo del efecto whitesmoke; blanco si no se indica
+  smokeColor?: string
   resultLine: string
   // Tiempo de la fase de mezclado antes de mostrar el resultado
   mixingMs?: number
   whatYouSaw: string[]
   why: string[]
-  noteLabel: string
-  note: string
+  noteLabel?: string
+  note?: string
 }
 
 export const REAGENTS: Reagent[] = [
@@ -410,7 +415,7 @@ export const REACTIONS: Reaction[] = [
   {
     ids: ['s', 'o2'],
     title: 'Azufre + oxígeno → dióxido de azufre',
-    equation: '2 S + 3 O₂ → 2 SO₂ + 2 O',
+    equation: 'S + O₂ → SO₂',
     effect: 'whitesmoke',
     resultColor: '#cbd5e0',
     resultLine: 'Gas de olor fuerte.',
@@ -449,7 +454,7 @@ export const REACTIONS: Reaction[] = [
     ],
     noteLabel: 'Nota',
     note:
-      'Esta reacción se usa en las pilas Daniell antiguas. El zinc es el ánodo y produce los electrones. Es una reacción redox controlada que genera electricidad.',
+      'Es la forma clásica de obtener hidrógeno en el laboratorio: el aparato de Kipp dejaba caer ácido clorhídrico sobre zinc y soltaba el gas a voluntad.',
   },
   {
     ids: ['naoh', 'hcl'],
@@ -479,7 +484,7 @@ export const REACTIONS: Reaction[] = [
     equation: 'CaCO₃ + 2 HCl → CaCl₂ + CO₂ + H₂O',
     effect: 'effervescence',
     resultColor: '#e0f2fe',
-    resultLine: 'Se despende dióxido de carbono.',
+    resultLine: 'Se desprende dióxido de carbono.',
     mixingMs: 1500,
     whatYouSaw: [
       'El sólido blanco comienza a disolverse inmediatamente.',
@@ -505,7 +510,7 @@ export const REACTIONS: Reaction[] = [
     mixingMs: 1200,
     whatYouSaw: [
       'Al mezclar las dos soluciones incoloras aparece inmediatamente un precipitado blanco.',
-      'El polvo blanco es bromuro de plata (AgCl), que es insoluble en agua.',
+      'El polvo blanco es cloruro de plata (AgCl), que es insoluble en agua.',
       'La reacción es instantánea: es una reacción de precipitación.',
     ],
     why: [
@@ -562,7 +567,3 @@ export const REACTIONS: Reaction[] = [
       'El fósforo blanco es altamente inflamable y tóxico. Se oxida espontáneamente al aire. Se debe guardar en agua o en ambiente inerte. Solo es para usar en laboratorio con experiencia.',
   },
 ]
-
-export function findReaction(a: string, b: string): Reaction | undefined {
-  return REACTIONS.find(({ ids }) => (ids[0] === a && ids[1] === b) || (ids[0] === b && ids[1] === a))
-}

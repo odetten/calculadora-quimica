@@ -1,5 +1,6 @@
 import { ELEMENT_NAMES, extractElements } from './elements.ts'
-import { REACTIONS, REAGENTS, type Reagent } from './reactions.ts'
+import { MIXTURES, reacts } from './mixtures.ts'
+import { REAGENTS, type Reagent } from './reactions.ts'
 
 export type ElementCategory =
   | 'no-metal'
@@ -147,7 +148,9 @@ export function labCompatibility(symbol: string): LabCompatibility {
   const ownIds = new Set(reagents.map((reagent) => reagent.id))
 
   const partnerIds = new Set<string>()
-  for (const { ids } of REACTIONS) {
+  for (const mixture of MIXTURES) {
+    if (!reacts(mixture)) continue
+    const { ids } = mixture
     if (ownIds.has(ids[0])) partnerIds.add(ids[1])
     if (ownIds.has(ids[1])) partnerIds.add(ids[0])
   }
