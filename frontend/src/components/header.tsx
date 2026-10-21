@@ -9,7 +9,7 @@ export type CourseId = 'quimica-1' | 'quimica-2'
 type HeaderProps = {
   isAuthenticated?: boolean
   onLoginClick?: () => void
-  onLogoutClick?: () => void
+  onProfileClick?: () => void
   onCourseSelect?: (course: CourseId) => void
   onCalculatorSelect?: (calculator: 'balance' | 'electronic') => void
   onHomeClick?: () => void
@@ -117,9 +117,8 @@ function NavMenu({ id, label, icon, items, hidden }: { id: string; label: string
   )
 }
 
-export default function Header({ isAuthenticated = false, onLoginClick, onLogoutClick, onCourseSelect, onCalculatorSelect, onHomeClick, onExperimentClick }: HeaderProps) {
+export default function Header({ isAuthenticated = false, onLoginClick, onProfileClick, onCourseSelect, onCalculatorSelect, onHomeClick, onExperimentClick }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false)
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -196,43 +195,12 @@ export default function Header({ isAuthenticated = false, onLoginClick, onLogout
             {isAuthenticated && (
               <button
                 type="button"
-                onClick={() => setConfirmLogout((open) => !open)}
-                aria-label="Cuenta: cerrar sesión"
-                aria-expanded={confirmLogout}
-                aria-controls="logout-confirmation"
+                onClick={onProfileClick}
+                aria-label="Ver perfil"
                 className="flex size-9 items-center justify-center rounded-full bg-gray-200 text-gray-500 transition-colors hover:bg-gray-300 hover:text-gray-700"
               >
                 <User className="size-5" aria-hidden="true" />
               </button>
-            )}
-            {isAuthenticated && confirmLogout && (
-              <div
-                id="logout-confirmation"
-                role="group"
-                aria-label="Confirmar cierre de sesión"
-                className="absolute right-0 top-full z-50 mt-3 w-64 rounded-xl border border-gray-200 bg-white p-4 text-left shadow-lg"
-              >
-                <p className="text-sm text-gray-800">¿De verdad quieres cerrar la sesión?</p>
-                <div className="mt-3 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmLogout(false)}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConfirmLogout(false)
-                      onLogoutClick?.()
-                    }}
-                    className="rounded-lg bg-teal-700 px-3 py-1.5 text-sm text-white hover:bg-teal-800"
-                  >
-                    Sí, cerrar sesión
-                  </button>
-                </div>
-              </div>
             )}
           </div>
         </div>
