@@ -2664,14 +2664,512 @@ const MORE_REACTIONS: Reaction[] = [
       'El carbonato de calcio no se disuelve en agua y la sal sí. Así se separan: se disuelve la sal, se filtra y el carbonato queda en el papel.',
     ],
   }),
+
+  // Yoduro de potasio
+  noReaction('ki', 'h2', {
+    why: ['El yoduro (I⁻) ya ganó su electrón y el potasio (K⁺) ya lo cedió: el hidrógeno no tiene nada que intercambiar con ellos.'],
+  }),
+  noReaction('ki', 'o2', {
+    why: [
+      'A corto plazo no pasa nada visible.',
+      'Pero el oxígeno del aire sí oxida el yoduro muy lentamente, sobre todo con luz y en medio ácido. Por eso una solución vieja de KI se pone amarillenta: se forma un poco de yodo.',
+    ],
+    conditions: ['4 KI + O₂ + 2 H₂O → 2 I₂ + 4 KOH (muy lento, con luz)'],
+  }),
+  {
+    ids: ['ki', 'na'],
+    title: 'Yoduro de potasio + sodio',
+    equation: '2 Na + 2 H₂O → 2 NaOH + H₂',
+    effect: 'effervescence',
+    resultColor: '#f3f4f6',
+    resultLine: 'El sodio reaccionó con el agua.',
+    mixingMs: 1600,
+    whatYouSaw: ['El sodio flota, se funde en una bolita y corre por la superficie mientras burbujea.'],
+    why: [
+      'El yoduro de potasio no participa: el potasio es todavía más reactivo que el sodio, así que el sodio no puede desplazarlo. Quien reacciona es el agua de la solución.',
+      'Se forma hidróxido de sodio y se libera hidrógeno, igual que con agua sola.',
+    ],
+    noteLabel: 'Seguridad',
+    note: 'El hidrógeno que se libera puede encenderse. El sodio nunca se pone en agua fuera de una demostración controlada.',
+  },
+  {
+    ids: ['ki', 'cl2'],
+    title: 'Yoduro de potasio + cloro → yodo',
+    equation: 'Cl₂ + 2 KI → 2 KCl + I₂',
+    effect: 'colorchange',
+    resultColor: '#92400e',
+    resultLine: 'La solución se puso café: se liberó yodo.',
+    mixingMs: 1400,
+    whatYouSaw: [
+      'Al burbujear cloro en la solución incolora, esta se pone amarilla y luego café.',
+      'Ese color es yodo que quedó libre.',
+    ],
+    why: [
+      'El cloro es más reactivo que el yodo: le quita el electrón al yoduro (2 I⁻ → I₂) y se queda él como cloruro (Cl₂ → 2 Cl⁻).',
+      'Es un desplazamiento entre halógenos: uno de más arriba en la tabla desplaza a uno de más abajo. Por eso el yodo no puede hacer lo contrario (prueba I₂ + NaCl).',
+    ],
+    noteLabel: 'Dato',
+    note: 'Así se detecta el cloro: un papel con yoduro y almidón se pone azul oscuro en cuanto lo toca.',
+  },
+  noReaction('ki', 'fe', {
+    why: [
+      'El hierro es menos reactivo que el potasio y no puede desplazarlo, y en esta solución no hay nada que lo oxide.',
+      'Si hubiera iones Fe³⁺ (de una sal de hierro), esos sí oxidarían el yoduro a yodo café.',
+    ],
+  }),
+  noReaction('ki', 'c', {
+    why: ['El carbono no reacciona con los iones de la sal: ni les cede ni les quita electrones.'],
+  }),
+  noReaction('ki', 'n2', {
+    why: [N2_INERT, 'Los iones del yoduro de potasio tampoco reaccionan con él.'],
+  }),
+  noReaction('ki', 'p', {
+    why: ['El fósforo no tiene con qué reaccionar: el yoduro ya está reducido y el potasio ya está oxidado.'],
+  }),
+  noReaction('ki', 's', {
+    why: ['El azufre no es lo bastante oxidante para quitarle el electrón al yoduro, y además no se disuelve en agua.'],
+  }),
+  noReaction('ki', 'cu', {
+    why: [
+      'El cobre es mucho menos reactivo que el potasio y no puede desplazarlo.',
+      'Con yodo libre sería distinto: el cobre sí reacciona con I₂ y forma yoduro de cobre(I) (prueba Cu + I₂).',
+    ],
+  }),
+  noReaction('ki', 'zn', {
+    why: ['El zinc no puede desplazar al potasio, que es mucho más reactivo. Los iones de la sal quedan igual.'],
+  }),
+  noReaction('ki', 'al', {
+    why: ['El aluminio no puede desplazar al potasio y, además, su capa de óxido lo protege.'],
+  }),
+  noReaction('ki', 'mg', {
+    why: [
+      'El magnesio no puede desplazar al potasio, que es más reactivo.',
+      'Lo único que pasa, muy lento, es que el magnesio reacciona con el agua de la solución y suelta alguna burbuja de hidrógeno.',
+    ],
+  }),
+  {
+    ids: ['ki', 'i2'],
+    title: 'Yoduro de potasio + yodo → solución de Lugol',
+    equation: 'I₂ + KI → KI₃',
+    effect: 'colorchange',
+    resultColor: '#78350f',
+    resultLine: 'El yodo se disolvió: solución café.',
+    mixingMs: 1600,
+    whatYouSaw: [
+      'El yodo casi no se disuelve en agua sola, pero en la solución de yoduro sí.',
+      'La solución se pone café rojizo oscuro.',
+    ],
+    why: [
+      'El yoduro (I⁻) se une a una molécula de yodo (I₂) y forma el ion triyoduro (I₃⁻), que sí es soluble en agua.',
+      'El triyoduro es el que da el color café. Es un equilibrio: el yodo sigue disponible para reaccionar.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Esta mezcla es la solución de Lugol. Se usa para desinfectar y para detectar almidón: con almidón se pone azul oscuro, casi negro.',
+  },
+  {
+    ids: ['ki', 'br2'],
+    title: 'Yoduro de potasio + bromo → yodo',
+    equation: 'Br₂ + 2 KI → 2 KBr + I₂',
+    effect: 'colorchange',
+    resultColor: '#92400e',
+    resultLine: 'Se liberó yodo.',
+    mixingMs: 1400,
+    whatYouSaw: ['El bromo rojizo desaparece y la solución se pone café oscuro.'],
+    why: [
+      'El bromo es más reactivo que el yodo: le quita el electrón al yoduro y lo convierte en yodo (2 I⁻ → I₂), mientras él queda como bromuro (Br⁻).',
+      'Igual que el cloro, el bromo desplaza al yodo, pero no al cloro. Así se ve el orden de reactividad: cloro > bromo > yodo.',
+    ],
+  },
+  {
+    ids: ['ki', 'h2o2'],
+    title: 'Yoduro de potasio + peróxido de hidrógeno',
+    equation: '2 H₂O₂ → 2 H₂O + O₂',
+    otherEquations: ['H₂O₂ + I⁻ → H₂O + IO⁻', 'H₂O₂ + IO⁻ → H₂O + O₂ + I⁻'],
+    otherLabel: 'Paso a paso, el yoduro funciona como catalizador:',
+    effect: 'effervescence',
+    resultColor: '#fde68a',
+    resultLine: '¡Mucho oxígeno y espuma!',
+    mixingMs: 1400,
+    whatYouSaw: [
+      'En cuanto el yoduro toca el peróxido se forma muchísimo gas: es oxígeno.',
+      'La mezcla se calienta y toma un color amarillento por un poco de yodo que se forma.',
+    ],
+    why: [
+      'El yoduro es un catalizador: acelera la descomposición del peróxido en agua y oxígeno sin gastarse. Primero toma un oxígeno del peróxido (IO⁻) y luego lo suelta como O₂.',
+      'Una parte del yoduro sí se oxida a yodo, y eso da el color amarillo.',
+      'La reacción libera calor; con peróxido concentrado el vapor sale de golpe.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Si se le agrega jabón, el oxígeno forma una columna enorme de espuma: es la famosa "pasta de dientes de elefante".',
+  },
+  {
+    ids: ['ki', 'kmno4'],
+    title: 'Yoduro de potasio + permanganato de potasio',
+    equation: '2 KMnO₄ + KI + H₂O → 2 MnO₂ + KIO₃ + 2 KOH',
+    effect: 'colorchange',
+    resultColor: '#78350f',
+    resultLine: 'El morado se volvió café.',
+    mixingMs: 1800,
+    whatYouSaw: ['El morado del permanganato desaparece.', 'Se forma un sólido café: dióxido de manganeso (MnO₂).'],
+    why: [
+      'El permanganato es un oxidante muy fuerte: en solución neutra lleva al yoduro hasta yodato (IO₃⁻, yodo +5) y el manganeso baja de +7 a +4.',
+      'Cada yodo cede 6 electrones y cada manganeso recibe 3; por eso hay 2 KMnO₄ por cada KI.',
+      'Con ácido sería distinto: el yoduro se queda en yodo (I₂) y la solución se pone café.',
+    ],
+  },
+  noReaction('ki', 'hcl', {
+    why: [
+      'Las dos sustancias solo aportan iones que se quedan disueltos (K⁺, I⁻, H⁺ y Cl⁻). No se forma ningún sólido, gas ni agua.',
+      'Con el tiempo la mezcla puede ponerse amarillenta: en medio ácido, el oxígeno del aire oxida el yoduro a yodo más rápido.',
+    ],
+  }),
+  noReaction('ki', 'naoh', {
+    why: ['Ninguna de las dos es ácida, así que no hay neutralización, y todos sus iones son solubles. Solo quedan mezcladas.'],
+  }),
+  {
+    ids: ['ki', 'h2so4'],
+    title: 'Yoduro de potasio + ácido sulfúrico',
+    equation: '8 KI + 5 H₂SO₄ → 4 K₂SO₄ + 4 I₂ + H₂S + 4 H₂O',
+    effect: 'whitesmoke',
+    resultColor: '#44403c',
+    smokeColor: '#a855f7',
+    resultLine: 'Vapores morados y olor a huevo podrido.',
+    mixingMs: 1600,
+    whatYouSaw: [
+      'Con el ácido concentrado, la sal se pone café oscuro y salen vapores morados de yodo.',
+      'Se percibe olor a huevo podrido: es sulfuro de hidrógeno (H₂S).',
+    ],
+    why: [
+      'El ácido sulfúrico concentrado oxida al yoduro hasta yodo (I₂). El yoduro cede sus electrones con tanta facilidad que lleva al azufre desde +6 hasta −2 (H₂S).',
+      'Con cloruros solo sale HCl (prueba H₂SO₄ + NaCl), con bromuros sale bromo y SO₂, y con yoduros se llega hasta H₂S: entre más abajo está el halógeno en la tabla, más fácil cede su electrón.',
+    ],
+    noteLabel: 'Seguridad',
+    note: 'El H₂S y los vapores de yodo son tóxicos. Solo en campana de extracción.',
+  },
+  noReaction('ki', 'caco3', {
+    why: [
+      'Las dos son sales estables y al intercambiar iones no se formaría ningún sólido ni gas nuevo.',
+      'El carbonato de calcio, que no se disuelve, se queda en el fondo sin cambiar.',
+    ],
+  }),
+  {
+    ids: ['ki', 'agno3'],
+    title: 'Yoduro de potasio + nitrato de plata',
+    equation: 'KI + AgNO₃ → AgI↓ + KNO₃',
+    effect: 'precipitation',
+    resultColor: '#fef08a',
+    resultLine: 'Se formó un precipitado amarillo.',
+    mixingMs: 1200,
+    whatYouSaw: ['Aparece de inmediato un sólido amarillo pálido: yoduro de plata (AgI).'],
+    why: [
+      'Es una doble sustitución: el Ag⁺ se une al I⁻ y forma AgI, que es muy insoluble. El K⁺ y el NO₃⁻ quedan disueltos.',
+      'El AgI es amarillo, el AgBr amarillo pálido y el AgCl blanco: así se distingue qué halogenuro hay en una muestra.',
+    ],
+  },
+  noReaction('ki', 'nacl', {
+    why: [
+      'Las dos son sales solubles: sus iones (K⁺, I⁻, Na⁺ y Cl⁻) se quedan disueltos sin formar nada nuevo.',
+      'El cloruro tampoco puede oxidar al yoduro: ya está como ion y no tiene fuerza para quitarle electrones.',
+    ],
+  }),
+  {
+    ids: ['ki', 'cuso4'],
+    title: 'Yoduro de potasio + sulfato de cobre(II)',
+    equation: '2 CuSO₄ + 4 KI → 2 CuI↓ + I₂ + 2 K₂SO₄',
+    effect: 'precipitation',
+    resultColor: '#92400e',
+    resultLine: 'El azul se volvió café y apareció un sólido.',
+    mixingMs: 1500,
+    whatYouSaw: [
+      'El azul del sulfato de cobre desaparece y la mezcla se pone café oscuro.',
+      'Se forma un sólido blanquecino, yoduro de cobre(I), que se ve café porque está teñido de yodo.',
+    ],
+    why: [
+      'El Cu²⁺ le quita un electrón al yoduro: el cobre baja a Cu⁺ y parte del yoduro se convierte en yodo (I₂), que da el color café.',
+      'El Cu⁺ se une con otro yoduro y forma CuI, que es insoluble. Por eso solo la mitad del yoduro se vuelve yodo.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Esta reacción sirve para medir cuánto cobre tiene una muestra: se mide el yodo que se libera.',
+  },
+
+  // Sulfato de cobre(II)
+  noReaction('cuso4', 'h2', {
+    why: [
+      'A temperatura ambiente el hidrógeno no reduce a los iones de cobre: la reacción es posible, pero muy lenta sin un catalizador.',
+      'El color azul no cambia.',
+    ],
+  }),
+  noReaction('cuso4', 'o2', {
+    why: ['El cobre ya está oxidado como Cu²⁺ y el azufre del sulfato ya está en +6, su máximo. El oxígeno no tiene nada que oxidar.'],
+  }),
+  {
+    ids: ['cuso4', 'na'],
+    title: 'Sulfato de cobre(II) + sodio',
+    equation: '2 Na + 2 H₂O → 2 NaOH + H₂',
+    otherEquations: ['CuSO₄ + 2 NaOH → Cu(OH)₂↓ + Na₂SO₄'],
+    otherLabel: 'Después, la sosa reacciona con el cobre:',
+    effect: 'effervescence',
+    resultColor: '#93c5fd',
+    resultLine: 'Burbujeó y apareció un sólido azul.',
+    mixingMs: 1600,
+    whatYouSaw: [
+      'El sodio burbujea y corre por la superficie, como en el agua.',
+      'A su alrededor aparece un sólido azul claro y gelatinoso; con el calor, una parte se vuelve negra.',
+    ],
+    why: [
+      'Esperarías que el sodio desplazara al cobre, pero reacciona primero con el agua: forma hidróxido de sodio y libera hidrógeno.',
+      'Ese hidróxido reacciona con el sulfato de cobre y forma hidróxido de cobre(II), azul e insoluble. Con el calor pierde agua y se vuelve óxido de cobre, negro.',
+      'Para obtener cobre metálico se usa un metal que no reaccione con el agua, como el hierro o el zinc (prueba Fe + CuSO₄).',
+    ],
+    noteLabel: 'Seguridad',
+    note: 'El sodio reacciona con violencia con cualquier solución en agua y el hidrógeno puede encenderse.',
+  },
+  noReaction('cuso4', 'cl2', {
+    why: ['El cobre ya está oxidado (Cu²⁺) y el azufre del sulfato también. El cloro no tiene a quién quitarle electrones.'],
+  }),
+  {
+    ids: ['cuso4', 'fe'],
+    title: 'Sulfato de cobre(II) + hierro',
+    equation: 'Fe + CuSO₄ → FeSO₄ + Cu',
+    effect: 'colorchange',
+    resultColor: '#d9f99d',
+    resultLine: 'El hierro se cubrió de cobre.',
+    mixingMs: 2200,
+    whatYouSaw: [
+      'El hierro se cubre de una capa rojiza: es cobre metálico.',
+      'Poco a poco el azul de la solución se aclara y queda verdoso.',
+    ],
+    why: [
+      'El hierro es más reactivo que el cobre, así que le cede electrones a los iones Cu²⁺: Fe → Fe²⁺ y Cu²⁺ → Cu.',
+      'El hierro pasa a la solución como Fe²⁺, de color verde pálido, y el cobre se deposita sobre el metal.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Es el experimento clásico del clavo en sulfato de cobre. Antiguamente así se recuperaba el cobre disuelto en el agua de las minas.',
+  },
+  noReaction('cuso4', 'c', {
+    why: ['El carbono no reacciona con los iones de la solución a temperatura ambiente.'],
+  }),
+  noReaction('cuso4', 'n2', {
+    why: [N2_INERT],
+  }),
+  {
+    ids: ['cuso4', 'p'],
+    title: 'Sulfato de cobre(II) + fósforo',
+    equation: '2 P + 5 CuSO₄ + 8 H₂O → 5 Cu + 2 H₃PO₄ + 5 H₂SO₄',
+    effect: 'darkening',
+    resultColor: '#44403c',
+    resultLine: 'El fósforo se cubrió de una capa oscura.',
+    mixingMs: 2200,
+    whatYouSaw: [
+      'El fósforo blanco se cubre de una capa oscura de cobre y fosfuro de cobre.',
+      'El azul de la solución se va aclarando.',
+    ],
+    why: [
+      'El fósforo blanco es un reductor fuerte: le cede electrones al Cu²⁺ y lo convierte en cobre metálico, y él se oxida hasta ácido fosfórico.',
+      'Cada fósforo cede 5 electrones y cada cobre recibe 2: por eso hay 2 P por cada 5 CuSO₄.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Antes se ponía sulfato de cobre en las quemaduras de fósforo blanco: la capa de cobre lo tapa y deja de arder. Hoy ya no se recomienda porque el cobre es tóxico.',
+  },
+  noReaction('cuso4', 's', {
+    why: ['El azufre no reacciona con los iones de la solución y además no se disuelve en agua: flota en polvo sin cambiar.'],
+  }),
+  noReaction('cuso4', 'cu', {
+    why: [
+      'El cobre metálico no puede desplazar a sus propios iones: es el mismo elemento.',
+      'Por eso en la pila de Daniell el electrodo de cobre va sumergido justo en sulfato de cobre.',
+    ],
+  }),
+  {
+    ids: ['cuso4', 'zn'],
+    title: 'Sulfato de cobre(II) + zinc',
+    equation: 'Zn + CuSO₄ → ZnSO₄ + Cu',
+    effect: 'colorchange',
+    resultColor: '#f1f5f9',
+    resultLine: 'El azul desapareció y se formó cobre.',
+    mixingMs: 2000,
+    whatYouSaw: [
+      'El zinc se cubre de un polvo café rojizo: es cobre.',
+      'El azul de la solución desaparece y la mezcla se calienta.',
+    ],
+    why: [
+      'El zinc es más reactivo que el cobre: le cede dos electrones a cada ion Cu²⁺ (Zn → Zn²⁺ y Cu²⁺ → Cu).',
+      'El azul venía de los iones Cu²⁺; al convertirse en cobre metálico, el color se va. Los iones de zinc no tienen color.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Si el zinc y el sulfato de cobre se separan en dos recipientes conectados, los electrones viajan por un cable: es la pila de Daniell, una de las primeras baterías.',
+  },
+  noReaction('cuso4', 'al', {
+    why: [
+      'Aunque el aluminio es más reactivo que el cobre, su capa de óxido lo protege y casi no reacciona.',
+      'Si se le agrega un poco de sal, los iones cloruro rompen esa capa: la reacción arranca con fuerza, se calienta y el aluminio se cubre de cobre.',
+    ],
+    conditions: ['2 Al + 3 CuSO₄ → Al₂(SO₄)₃ + 3 Cu (cuando se rompe la capa de óxido, por ejemplo con sal)'],
+  }),
+  {
+    ids: ['cuso4', 'mg'],
+    title: 'Sulfato de cobre(II) + magnesio',
+    equation: 'Mg + CuSO₄ → MgSO₄ + Cu',
+    effect: 'colorchange',
+    resultColor: '#f1f5f9',
+    resultLine: 'Reacción rápida: se formó cobre.',
+    mixingMs: 1500,
+    whatYouSaw: [
+      'El magnesio se cubre rápido de cobre café rojizo y la mezcla se calienta.',
+      'El azul se va y salen algunas burbujas de hidrógeno.',
+    ],
+    why: [
+      'El magnesio es mucho más reactivo que el cobre y lo desplaza con rapidez: Mg → Mg²⁺ y Cu²⁺ → Cu.',
+      'La solución de sulfato de cobre es un poco ácida, así que el magnesio también reacciona con algo de H⁺ y suelta hidrógeno.',
+    ],
+  },
+  noReaction('cuso4', 'i2', {
+    why: ['El yodo no puede oxidar más al cobre (ya está como Cu²⁺) ni al sulfato. Solo se disuelve un poco.'],
+  }),
+  noReaction('cuso4', 'br2', {
+    why: ['El bromo no tiene a quién quitarle electrones: el cobre y el azufre del sulfato ya están oxidados.'],
+  }),
+  {
+    ids: ['cuso4', 'h2o2'],
+    title: 'Sulfato de cobre(II) + peróxido de hidrógeno',
+    equation: '2 H₂O₂ → 2 H₂O + O₂',
+    effect: 'effervescence',
+    resultColor: '#7dd3fc',
+    resultLine: 'Burbujas de oxígeno.',
+    mixingMs: 2000,
+    whatYouSaw: ['Aparecen burbujas de oxígeno poco a poco.', 'El color azul se mantiene: el cobre no se gasta.'],
+    why: [
+      'Los iones de cobre actúan como catalizador: aceleran la descomposición del peróxido en agua y oxígeno sin consumirse.',
+      'Es más lenta que con yoduro de potasio (prueba KI + H₂O₂). Con un poco de base va mucho más rápido.',
+    ],
+  },
+  noReaction('cuso4', 'kmno4', {
+    why: [OXIDIZERS, 'Los colores azul y morado solo se mezclan.'],
+  }),
+  {
+    ids: ['cuso4', 'hcl'],
+    title: 'Sulfato de cobre(II) + ácido clorhídrico',
+    equation: '[Cu(H₂O)₆]²⁺ + 4 Cl⁻ ⇌ [CuCl₄]²⁻ + 6 H₂O',
+    effect: 'colorchange',
+    resultColor: '#84cc16',
+    resultLine: 'El azul se volvió verde.',
+    mixingMs: 1600,
+    whatYouSaw: [
+      'Con ácido clorhídrico concentrado, la solución azul se vuelve verde.',
+      'Si se le agrega agua, vuelve a ponerse azul.',
+    ],
+    why: [
+      'En agua, cada ion de cobre está rodeado de 6 moléculas de agua y se ve azul. Los iones cloruro las desplazan y forman [CuCl₄]²⁻, que es amarillo; la mezcla de los dos se ve verde.',
+      'Es un equilibrio (⇌): con mucho cloruro gana el verde y con mucha agua regresa el azul.',
+    ],
+    noteLabel: 'Dato',
+    note: 'A estos iones rodeados de moléculas se les llama complejos. Muchos de los colores de los compuestos de metales vienen de ellos.',
+  },
+  {
+    ids: ['cuso4', 'naoh'],
+    title: 'Sulfato de cobre(II) + hidróxido de sodio',
+    equation: 'CuSO₄ + 2 NaOH → Cu(OH)₂↓ + Na₂SO₄',
+    effect: 'precipitation',
+    resultColor: '#60a5fa',
+    resultLine: 'Se formó un precipitado azul.',
+    mixingMs: 1200,
+    whatYouSaw: [
+      'Aparece de inmediato un sólido azul claro y gelatinoso: hidróxido de cobre(II).',
+      'Si se calienta, el sólido se vuelve negro.',
+    ],
+    why: [
+      'Es una doble sustitución: el Cu²⁺ se une a los OH⁻ y forma Cu(OH)₂, que es insoluble. El sodio y el sulfato quedan disueltos.',
+      'Con calor el hidróxido pierde agua y se convierte en óxido de cobre(II), negro: Cu(OH)₂ → CuO + H₂O.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Esta prueba sirve para reconocer iones de cobre en una muestra: el precipitado azul es inconfundible.',
+  },
+  {
+    ids: ['cuso4', 'h2so4'],
+    title: 'Sulfato de cobre(II) + ácido sulfúrico',
+    equation: 'CuSO₄·5H₂O → CuSO₄ + 5 H₂O',
+    effect: 'colorchange',
+    resultColor: '#f1f5f9',
+    resultLine: 'Los cristales azules se volvieron blancos.',
+    mixingMs: 2000,
+    whatYouSaw: ['Al contacto con el ácido concentrado, los cristales azules se van poniendo blancos.'],
+    why: [
+      'Los cristales azules tienen moléculas de agua atrapadas: son sulfato de cobre pentahidratado (CuSO₄·5H₂O). El azul viene del cobre unido a esa agua.',
+      'El ácido sulfúrico concentrado atrapa el agua con muchísima fuerza y se la quita. El sulfato de cobre sin agua es blanco.',
+      'Entre ellos no hay intercambio de iones: comparten el ion sulfato.',
+    ],
+    noteLabel: 'Dato',
+    note: 'Al revés también funciona: el sulfato de cobre blanco se vuelve azul con una gota de agua. Por eso se usa para detectar humedad.',
+  },
+  {
+    ids: ['cuso4', 'caco3'],
+    title: 'Sulfato de cobre(II) + carbonato de calcio',
+    equation: '2 CuSO₄ + 2 CaCO₃ + H₂O → Cu₂(OH)₂CO₃ + 2 CaSO₄ + CO₂',
+    effect: 'colorchange',
+    resultColor: '#34d399',
+    resultLine: 'Se formó un sólido verde azulado.',
+    mixingMs: 2500,
+    whatYouSaw: [
+      'La reacción es lenta: salen algunas burbujas de CO₂.',
+      'El polvo blanco se va cubriendo de un sólido verde azulado y la solución pierde color.',
+    ],
+    why: [
+      'La solución de sulfato de cobre es un poco ácida y ataca al carbonato, que suelta CO₂.',
+      'El cobre queda como carbonato básico de cobre, Cu₂(OH)₂CO₃, insoluble y verde azulado. Es el mismo compuesto que el mineral malaquita.',
+    ],
+  },
+  noReaction('cuso4', 'agno3', {
+    why: [
+      'Los cuatro iones (Cu²⁺, SO₄²⁻, Ag⁺ y NO₃⁻) se quedan disueltos y nadie cede electrones: no hay reacción.',
+      'Solo si las dos soluciones están muy concentradas puede aparecer un poco de sulfato de plata, que es poco soluble.',
+    ],
+  }),
+  noReaction('cuso4', 'nacl', {
+    why: [
+      'Los iones de la sal no reaccionan con los del sulfato de cobre: no se forma ningún sólido ni gas.',
+      'Con muchísima sal la solución pasa de azul a verdosa: los cloruros rodean al cobre, como pasa con el ácido clorhídrico (prueba CuSO₄ + HCl).',
+    ],
+  }),
 ]
 
 export const MIXTURES: Reaction[] = [...REACTIONS, ...MORE_REACTIONS]
+
+// Mezclas de tres sustancias. Solo existen las de esta lista: el vaso acepta una tercera
+// sustancia cuando completa una de ellas.
+export const TRIPLES: Reaction[] = [
+  {
+    ids: ['h2o2', 'ki', 'cuso4'],
+    title: 'Peróxido de hidrógeno + yoduro de potasio + sulfato de cobre(II)',
+    equation: '2 H₂O₂ → 2 H₂O + O₂',
+    otherEquations: ['2 CuSO₄ + 4 KI → 2 CuI↓ + I₂ + 2 K₂SO₄', 'H₂O₂ + 2 KI → I₂ + 2 KOH'],
+    otherLabel: 'Al mismo tiempo ocurren:',
+    effect: 'eruption',
+    resultColor: '#b45309',
+    smokeColor: '#a855f7',
+    resultLine: '¡Erupción de espuma y humo morado!',
+    mixingMs: 1400,
+    whatYouSaw: [
+      'El azul del sulfato de cobre desaparece al tocar el yoduro y la mezcla se pone café oscuro: es yodo que quedó libre.',
+      'Enseguida brota muchísimo gas caliente: el peróxido se descompone en agua y oxígeno, y una columna de espuma sale por el cuello del matraz.',
+      'Sobre la espuma sube un humo morado: es vapor de yodo.',
+      'Al fondo queda un sólido blanquecino, yoduro de cobre(I), teñido de café por el yodo.',
+    ],
+    why: [
+      'Hay dos catalizadores trabajando a la vez: el yoduro y los iones de cobre aceleran la descomposición del peróxido en agua y oxígeno. Por eso el gas sale tan rápido y arrastra el líquido como espuma.',
+      'Mientras tanto, el Cu²⁺ y el peróxido le quitan electrones al yoduro y lo convierten en yodo (I₂), que tiñe todo de café. El cobre queda como CuI, un sólido insoluble.',
+      'La descomposición del peróxido libera mucho calor. Con ese calor parte del yodo se evapora, y el vapor de yodo es morado: de ahí el humo.',
+    ],
+    noteLabel: 'Seguridad',
+    note: 'Con peróxido concentrado la espuma sale caliente y puede quemar, y el yodo mancha la piel y la ropa. Con un poco de jabón se vuelve una "pasta de dientes de elefante" café. Solo en laboratorio, con lentes y guantes.',
+  },
+]
 
 export function reacts(reaction: Reaction): boolean {
   return reaction.effect !== 'none'
 }
 
-export function findReaction(a: string, b: string): Reaction | undefined {
-  return MIXTURES.find(({ ids }) => (ids[0] === a && ids[1] === b) || (ids[0] === b && ids[1] === a))
+// Busca la mezcla de esas sustancias sin importar el orden
+export function findReaction(ids: string[]): Reaction | undefined {
+  const pool = ids.length === 3 ? TRIPLES : MIXTURES
+  return pool.find((mixture) => mixture.ids.length === ids.length && ids.every((id) => mixture.ids.includes(id)))
 }

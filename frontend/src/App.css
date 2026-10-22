@@ -153,10 +153,6 @@
 }
 
 /* Balanceador */
-.balance-eyebrow {
-  @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50/90 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-800;
-}
-
 .balance-card {
   @apply rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur-sm sm:p-8;
 }
@@ -209,6 +205,81 @@
 
 .balance-atom-chip {
   @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-3 py-1 text-sm text-slate-700 shadow-sm;
+}
+
+.balance-atom-chip-off {
+  @apply border-amber-300 bg-amber-50 text-amber-900;
+}
+
+/* Casilla de un coeficiente que todavía no se descubre en el reto de Quimi */
+.balance-slot {
+  @apply mr-1 inline-grid min-w-[1.1em] place-items-center rounded-lg border-2 border-dashed border-teal-300 bg-white px-1 text-[0.75em] leading-tight text-teal-400;
+}
+
+.balance-slot-focus {
+  @apply border-teal-600 bg-teal-50 text-teal-700;
+}
+
+/* Quimi, guía del balanceador */
+.tutor-card {
+  @apply relative mt-4 overflow-hidden rounded-3xl border border-teal-200 bg-linear-to-br from-teal-50/80 via-white to-violet-50/60 p-4 shadow-sm sm:p-6;
+}
+
+.tutor-bubble {
+  @apply relative w-full min-w-0 rounded-2xl border-2 border-teal-200 bg-white px-4 py-3 shadow-md sm:w-auto sm:flex-1 sm:px-5 sm:py-4;
+}
+
+/* Cola del globo: hacia arriba en celular, hacia la izquierda en pantallas grandes */
+.tutor-bubble-tail {
+  @apply absolute -top-[9px] left-6 size-4 rotate-45 border-l-2 border-t-2 border-teal-200 bg-white sm:-left-[9px] sm:top-auto sm:bottom-8 sm:border-b-2 sm:border-t-0;
+}
+
+.tutor-title {
+  @apply text-[11px] font-bold uppercase tracking-wider text-teal-700;
+}
+
+.tutor-progress {
+  @apply ml-auto text-[11px] font-semibold tabular-nums text-slate-500;
+}
+
+.tutor-text {
+  @apply mt-1.5 whitespace-pre-line text-sm leading-6 text-[#1E1C2E] sm:text-base sm:leading-7;
+}
+
+.tutor-note {
+  @apply mt-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900;
+}
+
+.tutor-options {
+  @apply mt-4 flex flex-wrap gap-2;
+}
+
+.tutor-option {
+  @apply inline-flex items-center gap-2 rounded-xl border-2 border-teal-200 bg-white px-3.5 py-2 text-left text-sm font-semibold text-teal-900 transition hover:-translate-y-0.5 hover:border-teal-500 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700;
+}
+
+.tutor-option-primary {
+  @apply border-teal-700 bg-teal-700 text-white hover:border-teal-800 hover:bg-teal-800;
+}
+
+.tutor-option-wrong {
+  @apply cursor-not-allowed border-rose-200 bg-rose-50 text-rose-400 line-through hover:translate-y-0 hover:border-rose-200 hover:bg-rose-50;
+}
+
+.tutor-links {
+  @apply mt-3 flex flex-wrap gap-x-4 gap-y-1;
+}
+
+.tutor-link {
+  @apply inline-flex items-center gap-1 text-xs font-semibold text-teal-700 underline-offset-4 hover:underline;
+}
+
+.tutor-typing {
+  @apply mt-2 inline-flex gap-1;
+}
+
+.tutor-dot {
+  @apply size-2 rounded-full bg-violet-400;
 }
 
 /* Configuración electrónica */

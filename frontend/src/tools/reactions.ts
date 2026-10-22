@@ -1,5 +1,5 @@
 // 'none' es para las mezclas en las que no hay reacción: el vaso se queda como estaba
-export type ReactionEffect = 'explosion' | 'water' | 'salt' | 'rust' | 'co2' | 'sparkle' | 'effervescence' | 'precipitation' | 'colorchange' | 'darkening' | 'whitesmoke' | 'none'
+export type ReactionEffect = 'explosion' | 'water' | 'salt' | 'rust' | 'co2' | 'sparkle' | 'effervescence' | 'precipitation' | 'colorchange' | 'darkening' | 'whitesmoke' | 'eruption' | 'none'
 
 export type Reagent = {
   id: string
@@ -14,7 +14,8 @@ export type Reagent = {
 }
 
 export type Reaction = {
-  ids: [string, string]
+  // Dos sustancias, o tres en las mezclas especiales de TRIPLES (mixtures.ts)
+  ids: [string, string] | [string, string, string]
   title: string
   equation: string
   // Otras ecuaciones balanceadas que también pueden darse con los mismos reactivos
@@ -234,6 +235,22 @@ export const REAGENTS: Reagent[] = [
     state: 'Cristales blancos',
     note: 'Sal común de mesa. Muy importante en química.',
     color: '#ffffff',
+  },
+  {
+    id: 'ki',
+    formula: 'KI',
+    name: 'Yoduro de potasio',
+    state: 'Cristales blancos',
+    note: 'Fuente de yodo. Se agrega a la sal de mesa y protege la tiroides de la radiación.',
+    color: '#f5f5f4',
+  },
+  {
+    id: 'cuso4',
+    formula: 'CuSO₄',
+    name: 'Sulfato de cobre(II)',
+    state: 'Cristales azules',
+    note: 'Disuelto pinta el agua de azul. Se usa como fungicida y para limpiar albercas.',
+    color: '#38bdf8',
   },
 ]
 

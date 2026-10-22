@@ -18,7 +18,7 @@ function Mouth({ mood }: { mood: MascotMood }) {
 }
 
 /** Quimi: un matraz con cara que explica los conceptos clave en una burbuja de texto. */
-function Quimi({ mood }: { mood: MascotMood }) {
+export function Quimi({ mood }: { mood: MascotMood }) {
   return (
     <svg viewBox="0 0 120 140" className="mascot-bob h-full w-full" aria-hidden="true">
       <defs>

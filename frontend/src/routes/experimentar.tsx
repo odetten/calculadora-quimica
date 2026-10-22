@@ -1,10 +1,10 @@
 import { useEffect, useState, type ComponentType, type CSSProperties, type DragEvent } from 'react'
 import { PeriodicTable } from '../components/periodicTable.tsx'
-import { findReaction } from '../tools/mixtures.ts'
+import { findReaction, TRIPLES } from '../tools/mixtures.ts'
 import { REACTIONS, REAGENTS, type Reaction, type ReactionEffect, type Reagent } from '../tools/reactions.ts'
 
 type Phase = 'idle' | 'mixing' | 'reacted'
-type TabId = 'lab' | 'tabla'
+export type TabId = 'lab' | 'tabla'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'lab', label: 'Laboratorio' },
@@ -90,8 +90,9 @@ function Flask({ contents, phase, reaction }: { contents: string[]; phase: Phase
   const mixed = phase !== 'idle'
   const reacted = phase === 'reacted'
   const exploded = reacted && reaction?.effect === 'explosion'
-  // Si no hay reacción no se consume nada: el vaso conserva el nivel y los colores
-  const layerHeight = reacted && reaction?.effect !== 'none' ? 18 : 30
+  // Si no hay reacción no se consume nada: el vaso conserva el nivel y los colores.
+  // Con tres sustancias cada capa es más delgada para que quepan en el vaso.
+  const layerHeight = (reacted && reaction?.effect !== 'none' ? 18 : 30) * (contents.length > 2 ? 2 / 3 : 1)
 
   return (
     <div className={`relative h-56 w-40 ${phase === 'mixing' ? 'lab-wobble' : ''} ${exploded ? 'lab-burst' : ''}`}>
@@ -391,6 +392,97 @@ function WhiteSmokeEffect({ reaction }: { reaction: Reaction }) {
   )
 }
 
+// Distancia en px del fondo del escenario a la boca del matraz (pb-10 + alto del matraz hasta el cuello)
+const FLASK_MOUTH = 254
+
+// Burbujas fijas que hacen ver esponjosa la columna de espuma (x, y relativos a la boca del matraz)
+const foamCap = [
+  { x: -14, y: 30, size: 16, delay: 0.2 },
+  { x: 14, y: 46, size: 16, delay: 0.3 },
+  { x: -13, y: 58, size: 14, delay: 0.4 },
+  { x: -20, y: 70, size: 20, delay: 0.5 },
+  { x: 20, y: 74, size: 20, delay: 0.55 },
+  { x: -12, y: 86, size: 26, delay: 0.6 },
+  { x: 12, y: 88, size: 24, delay: 0.65 },
+  { x: 0, y: 100, size: 28, delay: 0.7 },
+]
+
+// Burbujas que salen volando de la espuma o se derraman por fuera del matraz
+const foamDrops = [
+  { x: -10, y: 100, dx: -26, dy: -30, size: 22, delay: 0.8 },
+  { x: 12, y: 100, dx: 24, dy: -36, size: 20, delay: 1.1 },
+  { x: 0, y: 110, dx: 4, dy: -40, size: 24, delay: 1.4 },
+  { x: -16, y: 0, dx: -44, dy: 90, size: 18, delay: 0.9 },
+  { x: 16, y: 0, dx: 46, dy: 100, size: 18, delay: 1.2 },
+  { x: -14, y: 0, dx: -54, dy: 130, size: 14, delay: 1.7 },
+  { x: 14, y: 0, dx: 58, dy: 140, size: 14, delay: 2 },
+]
+
+// Humo de vapor de yodo alrededor de la boca del matraz
+const eruptionSmoke = [
+  { x: -50, y: -20, dx: -40, delay: 0.3 },
+  { x: 50, y: -10, dx: 40, delay: 0.8 },
+  { x: -20, y: 10, dx: -20, delay: 1.3 },
+  { x: 30, y: 20, dx: 30, delay: 1.8 },
+  { x: -70, y: 0, dx: -30, delay: 2.2 },
+  { x: 0, y: 30, dx: 0, delay: 2.6 },
+]
+
+function EruptionEffect({ reaction }: { reaction: Reaction }) {
+  const smoke = reaction.smokeColor ?? '#e2e8f0'
+  return (
+    <>
+      <div className="lab-flash pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,#fef3c7_0%,#fcd34d_25%,transparent_60%)]" />
+      {eruptionSmoke.map((puff, i) => (
+        <span
+          key={`smoke-${i}`}
+          className="lab-puff pointer-events-none absolute left-1/2 size-24 rounded-full blur-lg"
+          style={{
+            bottom: FLASK_MOUTH + puff.y,
+            marginLeft: puff.x - 48,
+            backgroundColor: `${smoke}cc`,
+            animationDelay: `${puff.delay}s`,
+            '--dx': `${puff.dx}px`,
+          } as CSSProperties}
+        />
+      ))}
+      {/* Columna de espuma que sale por el cuello del matraz */}
+      <span
+        className="lab-erupt pointer-events-none absolute left-1/2 -ml-4 h-24 w-8 rounded-t-full bg-gradient-to-t from-amber-700 via-amber-400 to-amber-200"
+        style={{ bottom: FLASK_MOUTH }}
+      />
+      {foamCap.map((blob, i) => (
+        <span
+          key={`cap-${i}`}
+          className="lab-foam pointer-events-none absolute left-1/2 rounded-full bg-amber-200 ring-1 ring-amber-500/40"
+          style={{
+            bottom: FLASK_MOUTH + blob.y,
+            width: blob.size,
+            height: blob.size,
+            marginLeft: blob.x - blob.size / 2,
+            animationDelay: `${blob.delay}s`,
+          }}
+        />
+      ))}
+      {foamDrops.map((blob, i) => (
+        <span
+          key={`drop-${i}`}
+          className="lab-foam-blob pointer-events-none absolute left-1/2 rounded-full bg-amber-300/90 ring-1 ring-amber-600/30"
+          style={{
+            bottom: FLASK_MOUTH + blob.y,
+            width: blob.size,
+            height: blob.size,
+            marginLeft: blob.x - blob.size / 2,
+            animationDelay: `${blob.delay}s`,
+            '--dx': `${blob.dx}px`,
+            '--dy': `${blob.dy}px`,
+          } as CSSProperties}
+        />
+      ))}
+    </>
+  )
+}
+
 function NoReactionEffect() {
   return null
 }
@@ -407,6 +499,7 @@ const EFFECT_VIEWS: Record<ReactionEffect, ComponentType<{ reaction: Reaction }>
   colorchange: ColorChangeEffect,
   darkening: DarkeningEffect,
   whitesmoke: WhiteSmokeEffect,
+  eruption: EruptionEffect,
   none: NoReactionEffect,
 }
 
@@ -414,11 +507,14 @@ function ReagentButton({
   reagent,
   used,
   canAdd,
+  suggested = false,
   onAdd,
 }: {
   reagent: Reagent
   used: boolean
   canAdd: boolean
+  // Resalta la sustancia que completa una mezcla de tres
+  suggested?: boolean
   onAdd: () => void
 }) {
   return (
@@ -428,7 +524,9 @@ function ReagentButton({
       disabled={!canAdd || used}
       onDragStart={(event) => event.dataTransfer.setData('text/plain', reagent.id)}
       onClick={onAdd}
-      className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-left shadow-sm transition enabled:cursor-grab enabled:hover:-translate-y-0.5 enabled:hover:border-teal-300 enabled:hover:shadow-md disabled:opacity-45"
+      className={`flex items-center gap-2 rounded-xl border bg-white px-2 py-1.5 text-left shadow-sm transition enabled:cursor-grab enabled:hover:-translate-y-0.5 enabled:hover:border-teal-300 enabled:hover:shadow-md disabled:opacity-45 ${
+        suggested ? 'border-teal-500 ring-2 ring-teal-300' : 'border-slate-200'
+      }`}
     >
       <span className="size-5 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: reagent.color }} aria-hidden="true" />
       <span className="min-w-0">
@@ -438,18 +536,18 @@ function ReagentButton({
         </span>
       </span>
     </button>
-  )
+  )   
 }
 
-export function ExperimentPage({ onBack }: { onBack: () => void }) {
+export function ExperimentPage({ onBack, initialTab = 'lab' }: { onBack: () => void; initialTab?: TabId }) {
   const [contents, setContents] = useState<string[]>([])
   const [phase, setPhase] = useState<Phase>('idle')
   const [showWhy, setShowWhy] = useState(false)
   const [notice, setNotice] = useState('')
   const [dragOver, setDragOver] = useState(false)
-  const [tab, setTab] = useState<TabId>('lab')
+  const [tab, setTab] = useState<TabId>(initialTab)
 
-  const reaction = contents.length === 2 ? findReaction(contents[0], contents[1]) : undefined
+  const reaction = contents.length >= 2 ? findReaction(contents) : undefined
   const mixingMs = reaction?.mixingMs ?? 1500
 
   useEffect(() => {
@@ -458,20 +556,39 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
     return () => window.clearTimeout(timer)
   }, [phase, mixingMs])
 
-  const addReagent = (id: string) => {
+  // Sustancias que, añadidas después de mezclar dos, completan una mezcla de tres conocida
+  const tripleIds = new Set(
+    phase === 'reacted' && contents.length === 2
+      ? REAGENTS.filter(({ id }) => !contents.includes(id) && findReaction([...contents, id])).map(({ id }) => id)
+      : [],
+  )
+
+  // Devuelve true cuando la sustancia empieza una mezcla
+  const addReagent = (id: string): boolean => {
     const reagent = reagentById(id)
-    if (!reagent || phase !== 'idle' || contents.length >= 2) return
+    if (!reagent) return false
+    if (tripleIds.has(id)) {
+      setContents([...contents, id])
+      setPhase('mixing')
+      setShowWhy(false)
+      setNotice('')
+      return true
+    }
+    if (phase !== 'idle' || contents.length >= 2) return false
     if (contents.includes(id)) {
       setNotice(`${reagent.formula} ya está en el vaso. Prueba con otro reactivo.`)
-      return
+      return false
     }
     const next = [...contents, id]
     setContents(next)
     setNotice('')
-    if (next.length === 2) {
-      if (findReaction(next[0], next[1])) setPhase('mixing')
-      else setNotice('Todavía no tenemos esa combinación en el laboratorio. Reinicia y prueba con otra.')
+    if (next.length < 2) return false
+    if (findReaction(next)) {
+      setPhase('mixing')
+      return true
     }
+    setNotice('Todavía no tenemos esa combinación en el laboratorio. Reinicia y prueba con otra.')
+    return false
   }
 
   const reset = () => {
@@ -481,8 +598,8 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
     setNotice('')
   }
 
-  const tryIdea = (a: string, b: string) => {
-    setContents([a, b])
+  const tryIdea = (ids: string[]) => {
+    setContents(ids)
     setPhase('mixing')
     setShowWhy(false)
     setNotice('')
@@ -498,15 +615,20 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
   const canAdd = phase === 'idle' && contents.length < 2
 
   const addFromTable = (id: string) => {
-    addReagent(id)
-    // Con el segundo reactivo la reacción empieza: se lleva al usuario al vaso para verla
-    if (contents.length === 1 && !contents.includes(id)) setTab('lab')
+    // Cuando la reacción empieza se lleva al usuario al vaso para verla
+    if (addReagent(id)) setTab('lab')
   }
 
   let status = 'Arrastra una sustancia al vaso, o tócala para añadirla.'
   if (notice) status = notice
   else if (phase === 'mixing') status = 'Mezclando…'
-  else if (phase === 'reacted' && reaction) status = `${reaction.resultLine} Toca "¿Qué pasó?" para entenderlo.`
+  else if (phase === 'reacted' && reaction) {
+    status = `${reaction.resultLine} Toca "¿Qué pasó?" para entenderlo.`
+    if (tripleIds.size > 0) {
+      const extra = REAGENTS.filter(({ id }) => tripleIds.has(id)).map(({ formula }) => formula).join(' o ')
+      status += ` También puedes añadir ${extra} para mezclar las tres.`
+    }
+  }
   else if (contents.length === 1) status = 'Ahora añade la otra sustancia.'
 
   const EffectView = reaction ? EFFECT_VIEWS[reaction.effect] : undefined
@@ -519,7 +641,8 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
         key={reagent.id}
         reagent={reagent}
         used={contents.includes(reagent.id)}
-        canAdd={canAdd}
+        canAdd={canAdd || tripleIds.has(reagent.id)}
+        suggested={tripleIds.has(reagent.id)}
         onAdd={() => addReagent(reagent.id)}
       />
     ))
@@ -594,7 +717,7 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
         <div className="flex flex-col gap-3">
           <div
             onDragOver={(event) => {
-              if (!canAdd) return
+              if (!canAdd && tripleIds.size === 0) return
               event.preventDefault()
               setDragOver(true)
             }}
@@ -688,18 +811,18 @@ export function ExperimentPage({ onBack }: { onBack: () => void }) {
               <div className="rounded-3xl border border-slate-200 bg-white/80 p-5">
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-700">Ideas para combinar</h2>
                 <ul className="mt-3 flex flex-wrap gap-1.5">
-                  {REACTIONS.map(({ ids }) => {
-                    const [a, b] = ids.map(reagentById)
-                    if (!a || !b) return null
+                  {[...REACTIONS, ...TRIPLES].map(({ ids }) => {
+                    const reagents = ids.map(reagentById)
+                    if (reagents.some((reagent) => !reagent)) return null
                     return (
                       <li key={ids.join('+')}>
                         <button
                           type="button"
-                          onClick={() => tryIdea(ids[0], ids[1])}
+                          onClick={() => tryIdea(ids)}
                           className="rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-teal-900 transition-colors hover:border-teal-400 hover:bg-teal-100"
                         >
                           <span className="text-xs font-semibold">
-                            {a.formula} + {b.formula}
+                            {reagents.map((reagent) => reagent?.formula).join(' + ')}
                           </span>
                         </button>
                       </li>

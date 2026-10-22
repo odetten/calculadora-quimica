@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Atom, ChevronLeft, ChevronRight, FlaskConical, History, LandPlot, Sigma } from 'lucide-react'
+import { Atom, ChevronLeft, ChevronRight, FlaskConical, History, LandPlot, Orbit, Sigma } from 'lucide-react'
 import { CATEGORY_INFO, PERIODIC_ELEMENTS } from '../tools/periodicTable.ts'
-import { MIXTURES, reacts } from '../tools/mixtures.ts'
+import { MIXTURES, reacts, TRIPLES } from '../tools/mixtures.ts'
+
+export type LandingDestination = 'quimica-1' | 'balance' | 'electronic' | 'lab' | 'tabla' | 'history'
 
 type Feature = {
+  to: LandingDestination
   icon: ReactNode
   label: string
   title: string
@@ -18,6 +21,7 @@ type Feature = {
 
 const features: Feature[] = [
   {
+    to: 'quimica-1',
     icon: <LandPlot size={56} aria-hidden="true" />,
     label: 'Cursos',
     title: 'Cursos paso a paso',
@@ -30,6 +34,7 @@ const features: Feature[] = [
     variant: 0,
   },
   {
+    to: 'balance',
     icon: <Sigma size={56} aria-hidden="true" />,
     label: 'Balanceador',
     title: 'Balanceador de ecuaciones',
@@ -42,6 +47,20 @@ const features: Feature[] = [
     variant: 1,
   },
   {
+    to: 'electronic',
+    icon: <Orbit size={56} aria-hidden="true" />,
+    label: 'Configuración',
+    title: 'Configuración electrónica',
+    text: 'Elige un elemento y mira cómo se acomodan sus electrones en capas y subniveles, del 1s al 7p.',
+    bg: '#f8dce6',
+    ink: '#a0365e',
+    pill: '#a0365e',
+    a: '#efb9cc',
+    b: '#fcedf2',
+    variant: 5,
+  },
+  {
+    to: 'lab',
     icon: <FlaskConical size={56} aria-hidden="true" />,
     label: 'Laboratorio',
     title: 'Laboratorio virtual',
@@ -54,6 +73,7 @@ const features: Feature[] = [
     variant: 2,
   },
   {
+    to: 'tabla',
     icon: <Atom size={56} aria-hidden="true" />,
     label: 'Tabla periódica',
     title: 'Tabla periódica interactiva',
@@ -66,6 +86,7 @@ const features: Feature[] = [
     variant: 3,
   },
   {
+    to: 'history',
     icon: <History size={56} aria-hidden="true" />,
     label: 'Historial',
     title: 'Tu historial a la mano',
@@ -81,7 +102,7 @@ const features: Feature[] = [
 
 const stats = [
   { value: PERIODIC_ELEMENTS.length, label: 'elementos para explorar en la tabla periódica' },
-  { value: MIXTURES.filter(reacts).length, label: 'reacciones que puedes provocar en el laboratorio' },
+  { value: [...MIXTURES, ...TRIPLES].filter(reacts).length, label: 'reacciones que puedes provocar en el laboratorio' },
   { value: 2, label: 'cursos de química con lecciones y práctica' },
 ]
 
@@ -141,11 +162,17 @@ function Decor({ variant, a, b }: { variant: number; a: string; b: string }) {
           <circle cx="88" cy="102" r="19" fill={b} />
         </>
       )}
+      {variant === 5 && (
+        <>
+          <circle cx="94" cy="88" r="17" fill={b} />
+          <path d="M0 125 L0 98 C24 86 46 112 70 100 C82 94 92 92 100 96 L100 125 Z" fill={a} />
+        </>
+      )}
     </svg>
   )
 }
 
-function FeatureCarousel() {
+function FeatureCarousel({ onNavigate }: { onNavigate: (destination: LandingDestination) => void }) {
   const scroller = useRef<HTMLUListElement>(null)
   const [edge, setEdge] = useState({ start: true, end: false })
 
@@ -202,7 +229,7 @@ function FeatureCarousel() {
         className="ld-scroller -mx-2 mt-10 flex snap-x snap-mandatory gap-6 overflow-x-auto px-2 pb-4 pt-3"
       >
         {features.map((feature) => (
-          <li key={feature.title} className="group w-[17rem] shrink-0 snap-start list-none">
+          <li key={feature.title} className="group relative w-[17rem] shrink-0 snap-start list-none">
             <div
               className="relative aspect-[4/5] overflow-hidden rounded-3xl transition duration-300 group-hover:-translate-y-2 group-hover:shadow-xl group-hover:shadow-black/15"
               style={{ backgroundColor: feature.bg }}
@@ -221,7 +248,16 @@ function FeatureCarousel() {
                 {feature.icon}
               </span>
             </div>
-            <h3 className="mt-4 font-display text-xl font-bold text-[#1E1C2E]">{feature.title}</h3>
+            <h3 className="mt-4 font-display text-xl font-bold text-[#1E1C2E]">
+              {/* El ::after estira el botón sobre todo el recuadro para que cualquier parte sea clicable */}
+              <button
+                type="button"
+                onClick={() => onNavigate(feature.to)}
+                className="cursor-pointer text-left transition-colors group-hover:text-teal-800 after:absolute after:inset-0 after:rounded-3xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-teal-700"
+              >
+                {feature.title}
+              </button>
+            </h3>
             <p className="mt-1 text-sm leading-6 text-slate-600">{feature.text}</p>
           </li>
         ))}
@@ -299,7 +335,7 @@ function StartButton({ onStart, children }: { onStart: () => void; children: Rea
   )
 }
 
-export function LandingPage({ onStart }: { onStart: () => void }) {
+export function LandingPage({ onStart, onNavigate }: { onStart: () => void; onNavigate: (destination: LandingDestination) => void }) {
   return (
     <>
       <section
@@ -399,7 +435,7 @@ export function LandingPage({ onStart }: { onStart: () => void }) {
       <section aria-label="Por qué My Chem" className="bg-[#f1f7f5]">
         <div className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-10">
           <Reveal>
-            <FeatureCarousel />
+            <FeatureCarousel onNavigate={onNavigate} />
           </Reveal>
         </div>
       </section>

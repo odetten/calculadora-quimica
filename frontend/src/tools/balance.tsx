@@ -1,5 +1,7 @@
 import { Fragment, useRef, useState, type FormEvent } from 'react'
-import { Check, CheckCircle2, LayoutGrid, Scale } from 'lucide-react'
+import { Check, CheckCircle2, LayoutGrid, Puzzle } from 'lucide-react'
+import { BalanceTutor, type GuideView } from '../components/balanceTutor.tsx'
+import { fillCoefficients } from './balanceGuide.ts'
 import { balanceEquation, countAtoms } from './chemistry.ts'
 import { extractElements } from './elements.ts'
 
@@ -105,21 +107,40 @@ function FormulaPreview({ value }: { value: string }) {
   )
 }
 
-// Ecuación balanceada con los coeficientes resaltados, p. ej. "4Fe + 3O_2 → 2Fe_2O_3"
-function BalancedEquation({ value }: { value: string }) {
+// Ecuación balanceada con los coeficientes resaltados, p. ej. "4Fe + 3O_2 → 2Fe_2O_3".
+// Durante el reto de Quimi (`guide`) los coeficientes que faltan se ven como casillas vacías.
+function BalancedEquation({ value, guide }: { value: string; guide?: GuideView | null }) {
+  const sides = value.split(' → ').map((side) => side.split(' + ').map((term) => {
+    const [, written, formula] = term.match(/^(\d*)(.*)$/) ?? ['', '', term]
+    return { written, formula }
+  }))
+  const coefficientAt = (index: number, written: string) => {
+    if (!guide) return written
+    const found = guide.coefficients[index]
+    return found === null ? null : found === 1 ? '' : String(found)
+  }
+  const spoken = sides
+    .map((terms, sideIndex) => terms.map(({ written, formula }, termIndex) => `${coefficientAt(sideIndex * sides[0].length + termIndex, written) ?? '?'}${formula.replace(/_/g, '')}`).join(' + '))
+    .join(' → ')
+
   return (
     <>
-      <span className="sr-only">{value.replace(/_/g, '')}</span>
-      {value.split(' → ').map((side, sideIndex) => (
+      <span className="sr-only">{spoken}</span>
+      {sides.map((terms, sideIndex) => (
         <Fragment key={sideIndex}>
           {sideIndex === 1 && <span className="balance-arrow" aria-hidden="true">→</span>}
-          {side.split(' + ').map((term, termIndex) => {
-            const [, coefficient, formula] = term.match(/^(\d*)(.*)$/) ?? ['', '', term]
+          {terms.map(({ written, formula }, termIndex) => {
+            const index = sideIndex * sides[0].length + termIndex
+            const coefficient = coefficientAt(index, written)
             return (
               <Fragment key={termIndex}>
                 {termIndex > 0 && <span className="balance-plus" aria-hidden="true">+</span>}
                 <span className="whitespace-nowrap" aria-hidden="true">
-                  {coefficient && <span className="balance-coefficient">{coefficient}</span>}
+                  {coefficient === null ? (
+                    <span className={`balance-slot ${guide?.focus.includes(index) ? 'balance-slot-focus' : ''}`}>?</span>
+                  ) : coefficient && (
+                    <span key={coefficient} className={`balance-coefficient ${guide ? 'balance-coefficient-pop' : ''}`}>{coefficient}</span>
+                  )}
                   <FormulaPreview value={formula} />
                 </span>
               </Fragment>
@@ -151,6 +172,7 @@ export function Balance() {
   const [applicationsError, setApplicationsError] = useState('')
   const [applicationsLoading, setApplicationsLoading] = useState(false)
   const [previousResults, setPreviousResults] = useState<Array<{ input: string; balanced: string }>>([])
+  const [guide, setGuide] = useState<GuideView | null>(null)
   const reactantsRef = useRef<HTMLInputElement>(null)
   const productsRef = useRef<HTMLInputElement>(null)
   const equationCardRef = useRef<HTMLFormElement>(null)
@@ -163,6 +185,7 @@ export function Balance() {
     setExplanationError('')
     setApplications('')
     setApplicationsError('')
+    setGuide(null)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -350,7 +373,8 @@ export function Balance() {
     </label>
   )
 
-  const atoms = balancedResult ? atomCheck(balancedResult) : []
+  // Durante el reto, los átomos se cuentan con los coeficientes descubiertos hasta ahora
+  const atoms = balancedResult ? atomCheck(guide ? fillCoefficients(balancedResult, guide.coefficients) : balancedResult) : []
 
   return (
     <>
@@ -364,11 +388,7 @@ export function Balance() {
 
       <section id="balanceador" className="equation-section mx-auto w-full max-w-[1600px] scroll-mt-20 px-6 pb-16 pt-6 sm:px-10">
         <div className="mb-8 flex w-full flex-col items-start text-left">
-          <span className="balance-eyebrow">
-            <Scale size={14} aria-hidden="true" />
-            Calculadora · Balanceo químico
-          </span>
-          <h1 className="mt-4 font-display text-4xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className="font-display text-4xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
             Equilibra tu <span className="text-teal-700">ecuación</span>.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">Introduce los reactivos y productos para comenzar a resolver el balance quimico.</p>
@@ -469,41 +489,34 @@ export function Balance() {
               <>
                 <div key={balancedResult} className="result-panel lab-pop" aria-live="polite">
                   <span className="result-label">
-                    <CheckCircle2 size={16} aria-hidden="true" />
-                    Ecuación balanceada
+                    {guide ? <Puzzle size={16} aria-hidden="true" /> : <CheckCircle2 size={16} aria-hidden="true" />}
+                    {guide ? 'Resolviendo con Quimi' : 'Ecuación balanceada'}
                   </span>
                   <p className="result-equation mt-3">
-                    <BalancedEquation value={balancedResult} />
+                    <BalancedEquation value={balancedResult} guide={guide} />
                   </p>
                   <div className="mt-5 border-t border-teal-100 pt-4">
                     <p className="text-xs font-semibold text-slate-700">Átomos en cada lado</p>
                     <ul className="mt-2 flex flex-wrap gap-2">
                       {atoms.map(({ element, left, right }) => (
-                        <li key={element} className="balance-atom-chip">
-                          <span className="font-semibold text-teal-800">{element}</span>
-                          <span className="tabular-nums">{left} = {right}</span>
-                          <Check size={14} className="text-teal-600" aria-hidden="true" />
+                        <li key={`${element}-${left}-${right}`} className={`balance-atom-chip ${left === right ? '' : 'balance-atom-chip-off'} ${guide ? 'lab-pop' : ''}`}>
+                          <span className={`font-semibold ${left === right ? 'text-teal-800' : 'text-amber-900'}`}>{element}</span>
+                          <span className="tabular-nums">{left} {left === right ? '=' : '≠'} {right}</span>
+                          {left === right && <Check size={14} className="text-teal-600" aria-hidden="true" />}
                         </li>
                       ))}
                     </ul>
                   </div>
                 </div>
 
-                <section className="ai-explanation" aria-label="Desglose paso a paso" aria-live="polite" aria-busy={explanationLoading}>
-                  <div className="ai-explanation-heading">
-                    <span className="ai-status-dot" aria-hidden="true" />
-                    Desglose paso a paso
-                    <span className="ai-model-badge">Llama 3.1 · 8B</span>
-                  </div>
-                  {explanationLoading && (
-                    <p className="ai-explanation-text flex items-center gap-2">
-                      <span className="size-4 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600 motion-reduce:animate-none" aria-hidden="true" />
-                      Analizando la ecuación y preparando los pasos…
-                    </p>
-                  )}
-                  {explanationError && <p className="ai-explanation-text text-amber-800">{explanationError}</p>}
-                  {explanation && <p className="ai-explanation-text whitespace-pre-wrap">{explanation}</p>}
-                </section>
+                <BalanceTutor
+                  key={balancedResult}
+                  balanced={balancedResult}
+                  explanation={explanation}
+                  explanationLoading={explanationLoading}
+                  explanationError={explanationError}
+                  onGuideChange={setGuide}
+                />
 
                 <section className="ai-explanation" aria-label="Aplicaciones de los elementos" aria-live="polite" aria-busy={applicationsLoading}>
                   <div className="ai-explanation-heading">

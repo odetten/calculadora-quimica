@@ -54,7 +54,7 @@ const normalizeFormula = (formula: string) => formula
 const formatFormulaForDisplay = (formula: string) => formula.replace(/([A-Za-z)])(\d+)/g, '$1_$2')
 const removeLeadingCoefficient = (compound: string) => compound.replace(/^\d+(?:\.\d+)?/, '')
 
-const parseCompound = (compound: string): Record<string, number> => {
+export const parseCompound = (compound: string): Record<string, number> => {
   const normalized = normalizeFormula(compound.trim())
   const formula = removeLeadingCoefficient(normalized)
   if (!formula || /^\d/.test(formula)) throw new Error(`Formula no reconocida: ${compound}`)

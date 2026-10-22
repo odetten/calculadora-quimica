@@ -4,9 +4,9 @@ import { LearningHub } from './LearningHub.tsx'
 import Header, { type CourseId } from './components/header.tsx'
 import Splash from './components/splash.tsx'
 import { AuthPage, type AuthMode } from './routes/auth.tsx'
-import { ExperimentPage } from './routes/experimentar.tsx'
+import { ExperimentPage, type TabId as LabTab } from './routes/experimentar.tsx'
 import { HistoryPage } from './routes/history.tsx'
-import { LandingPage } from './routes/landing.tsx'
+import { LandingPage, type LandingDestination } from './routes/landing.tsx'
 import { ProfilePage } from './routes/profile.tsx'
 import { Quimica1Page } from './routes/quimica1.tsx'
 import { Quimica2Page } from './routes/quimica2.tsx'
@@ -20,6 +20,7 @@ function App() {
     () => Boolean(localStorage.getItem('quimica-token')),
   )
   const [activeCalculator, setActiveCalculator] = useState<'balance' | 'electronic'>('balance')
+  const [labTab, setLabTab] = useState<LabTab>('lab')
 
   const handleAuthChange = useCallback((authenticated: boolean) => {
     setIsAuthenticated(authenticated)
@@ -49,6 +50,25 @@ function App() {
     window.scrollTo({ top: 0 })
   }
 
+  const openFromLanding = (destination: LandingDestination) => {
+    if (destination === 'balance' || destination === 'electronic') {
+      setActiveCalculator(destination)
+      setScreen('home')
+    } else if (destination === 'lab' || destination === 'tabla') {
+      setLabTab(destination)
+      setScreen('experimentar')
+    } else if (destination === 'history') {
+      if (!isAuthenticated) {
+        openAuth('login')
+        return
+      }
+      setScreen('history')
+    } else {
+      setScreen(destination)
+    }
+    window.scrollTo({ top: 0 })
+  }
+
   return (
     <main id="inicio" className="min-h-screen overflow-x-hidden bg-transparent text-slate-900">
       <Splash />
@@ -70,6 +90,7 @@ function App() {
         }}
         onCourseSelect={openCourse}
         onExperimentClick={() => {
+          setLabTab('lab')
           setScreen('experimentar')
           window.scrollTo({ top: 0 })
         }}
@@ -84,6 +105,7 @@ function App() {
             setScreen('home')
             window.scrollTo({ top: 0 })
           }}
+          onNavigate={openFromLanding}
         />
       ) : screen === 'auth' ? (
         <AuthPage
@@ -105,10 +127,10 @@ function App() {
             onLogout={handleLogout}
           />
         ) : (
-          <LandingPage onStart={() => openAuth('login')} />
+          <LandingPage onStart={() => openAuth('login')} onNavigate={openFromLanding} />
         )
       ) : screen === 'experimentar' ? (
-        <ExperimentPage onBack={() => setScreen('home')} />
+        <ExperimentPage onBack={() => setScreen('home')} initialTab={labTab} />
       ) : screen === 'quimica-1' ? (
         <Quimica1Page onBack={() => setScreen('home')} />
       ) : screen === 'quimica-2' ? (
