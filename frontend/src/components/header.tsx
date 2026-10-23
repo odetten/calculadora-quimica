@@ -8,6 +8,8 @@ export type CourseId = 'quimica-1' | 'quimica-2'
 
 type HeaderProps = {
   isAuthenticated?: boolean
+  // Sin fondo ni borde mientras la página está hasta arriba (la portada pasa por detrás)
+  transparent?: boolean
   onLoginClick?: () => void
   onProfileClick?: () => void
   onCourseSelect?: (course: CourseId) => void
@@ -117,14 +119,16 @@ function NavMenu({ id, label, icon, items, hidden }: { id: string; label: string
   )
 }
 
-export default function Header({ isAuthenticated = false, onLoginClick, onProfileClick, onCourseSelect, onCalculatorSelect, onHomeClick, onExperimentClick }: HeaderProps) {
+export default function Header({ isAuthenticated = false, transparent = false, onLoginClick, onProfileClick, onCourseSelect, onCalculatorSelect, onHomeClick, onExperimentClick }: HeaderProps) {
   const [hidden, setHidden] = useState(false);
+  const [atTop, setAtTop] = useState(() => window.scrollY < 8);
   const lastY = useRef(0);
 
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       const diff = y - lastY.current;
+      setAtTop(y < 8);
 
       // Ignora movimientos muy pequeños para que no "tiemble"
       if (Math.abs(diff) < 5) return;
@@ -141,9 +145,9 @@ export default function Header({ isAuthenticated = false, onLoginClick, onProfil
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-200 bg-white transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-x-0 top-0 z-50 h-16 border-b transition-[translate,background-color,border-color] duration-300 ease-in-out ${
           hidden ? "-translate-y-full" : "translate-y-0"
-        }`}
+        } ${transparent && atTop ? "border-transparent bg-transparent" : "border-gray-200 bg-white"}`}
       >
         <div className="mx-auto grid h-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-5">
           <a

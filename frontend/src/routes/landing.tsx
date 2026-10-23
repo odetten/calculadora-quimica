@@ -1,7 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Atom, ChevronLeft, ChevronRight, FlaskConical, History, LandPlot, Orbit, Sigma } from 'lucide-react'
 import { CATEGORY_INFO, PERIODIC_ELEMENTS } from '../tools/periodicTable.ts'
 import { MIXTURES, reacts, TRIPLES } from '../tools/mixtures.ts'
+import circulo from '../assets/landing/Ellipse 46.svg'
+import bolita from '../assets/landing/Ellipse 47.svg'
+import orbita from '../assets/landing/Ellipse 48.svg'
+import dona from '../assets/landing/Group 6.svg'
+import matraz from '../assets/landing/Group 7.svg'
+import estrella from '../assets/landing/Vector 5.svg'
 
 export type LandingDestination = 'quimica-1' | 'balance' | 'electronic' | 'lab' | 'tabla' | 'history'
 
@@ -106,15 +112,6 @@ const stats = [
   { value: 2, label: 'cursos de química con lecciones y práctica' },
 ]
 
-const floaters = [
-  { text: 'H₂O', left: '4%', top: '12%', delay: 0, size: 'text-2xl' },
-  { text: 'NaCl', left: '40%', top: '8%', delay: 1.2, size: 'text-xl' },
-  { text: 'CO₂', left: '8%', top: '74%', delay: 0.6, size: 'text-3xl' },
-  { text: 'O₂', left: '46%', top: '80%', delay: 1.8, size: 'text-2xl' },
-  { text: 'Fe', left: '88%', top: '10%', delay: 0.9, size: 'text-2xl' },
-  { text: 'H₂', left: '92%', top: '70%', delay: 2.1, size: 'text-xl' },
-]
-
 const bubbles = [
   { left: '12%', size: '1.2rem', delay: 0, duration: 9 },
   { left: '28%', size: '2rem', delay: 2.5, duration: 12 },
@@ -124,7 +121,17 @@ const bubbles = [
   { left: '94%', size: '1rem', delay: 3.4, duration: 9 },
 ]
 
-const headline = ['La', 'química', 'nunca', 'fue', 'tan', 'divertida']
+const headline = [['La', 'química', 'nunca'], ['había', 'sido'], ['tan', 'divertida']]
+
+// Posición de cada pieza en px del frame de Figma (1280×832); se pasan a % para que escalen con la portada
+const heroArt = [
+  { src: circulo, x: 407, y: 0, w: 873 },
+  { src: estrella, x: 482, y: 125, w: 798 },
+  { src: matraz, x: 635, y: 244, w: 372 },
+  { src: orbita, x: 712, y: 521, w: 568 },
+  { src: dona, x: 867.5, y: 528, w: 317 },
+  { src: bolita, x: 715, y: 685, w: 120 },
+]
 
 const tickerElements = PERIODIC_ELEMENTS.slice(0, 54)
 
@@ -338,71 +345,46 @@ function StartButton({ onStart, children }: { onStart: () => void; children: Rea
 export function LandingPage({ onStart, onNavigate }: { onStart: () => void; onNavigate: (destination: LandingDestination) => void }) {
   return (
     <>
-      <section
-        aria-label="Presentación"
-        className="ld-hero relative isolate overflow-hidden text-[#1E1C2E]"
-      >
-        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-          {bubbles.map((bubble) => (
-            <span
-              key={bubble.left}
-              className="ld-bubble absolute bottom-0 rounded-full border-2 border-[#07c7b0]/60 bg-[#07c7b0]/15"
-              style={{
-                left: bubble.left,
-                width: bubble.size,
-                height: bubble.size,
-                animationDelay: `${bubble.delay}s`,
-                animationDuration: `${bubble.duration}s`,
-              }}
-            />
-          ))}
-          {floaters.map((floater) => (
-            <span
-              key={floater.text}
-              className={`ld-float absolute font-display font-bold text-teal-700/20 ${floater.size}`}
-              style={{ left: floater.left, top: floater.top, animationDelay: `${floater.delay}s` }}
-            >
-              {floater.text}
-            </span>
-          ))}
-        </div>
+      <section aria-label="Presentación" className="ld-intro relative isolate overflow-hidden bg-white text-[#1E1C2E]">
+        <div className="ld-intro-frame flex min-h-[calc(100vh-4rem)] items-center px-6 py-16 sm:px-10">
+          <div className="pointer-events-none absolute inset-0 hidden select-none md:block" aria-hidden="true">
+            {heroArt.map((piece) => (
+              <img
+                key={piece.src}
+                src={piece.src}
+                alt=""
+                draggable={false}
+                className="absolute h-auto max-w-none"
+                style={{ left: `${piece.x / 12.8}%`, top: `${piece.y / 8.32}%`, width: `${piece.w / 12.8}%` }}
+              />
+            ))}
+          </div>
 
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center gap-10 px-6 pb-28 pt-12 sm:px-10 md:grid-cols-2">
-          <div>
-            <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              {headline.map((word, index) => (
-                <span key={word} className="inline-block overflow-hidden pb-1 align-bottom">
-                  <span
-                    className={`ld-word inline-block ${word === 'divertida' ? 'ld-shimmer' : ''}`}
-                    style={{ animationDelay: `${0.2 + index * 0.12}s` }}
-                  >
-                    {word}
-                    {index < headline.length - 1 ? ' ' : ''}
-                  </span>
+          <div className="ld-intro-copy relative">
+            <h1 className="ld-intro-title font-display text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+              {headline.map((line, lineIndex) => (
+                <span key={line.join(' ')} className="block">
+                  {line.map((word, wordIndex) => (
+                    <Fragment key={word}>
+                      {wordIndex > 0 && ' '}
+                      <span className="inline-block overflow-hidden pb-1 align-bottom">
+                        <span
+                          className={`ld-word inline-block ${word === 'divertida' ? 'text-[#07c7b0]' : ''}`}
+                          style={{ animationDelay: `${0.2 + (lineIndex * 3 + wordIndex) * 0.12}s` }}
+                        >
+                          {word}
+                        </span>
+                      </span>
+                    </Fragment>
+                  ))}
                 </span>
               ))}
             </h1>
-            <div className="ld-rise mt-9" style={{ animationDelay: '1.1s' }}>
+            <div className="ld-rise ld-intro-cta mt-9" style={{ animationDelay: '1.1s' }}>
               <StartButton onStart={onStart}>Empezar ahora</StartButton>
             </div>
           </div>
-
-          {/* Espacio reservado para el vector gráfico */}
-          <div id="landing-vector" aria-hidden="true" className="hidden aspect-square w-full md:block" />
         </div>
-
-        <svg
-          className="absolute inset-x-0 bottom-0 h-16 w-full text-[#07c7b0]"
-          viewBox="0 0 1440 80"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            className="ld-wave"
-            fill="currentColor"
-            d="M0 40 C180 80 360 0 540 30 C720 60 900 80 1080 40 C1260 0 1350 20 1440 36 L1440 80 L0 80 Z"
-          />
-        </svg>
       </section>
 
       <div className="overflow-hidden bg-white pb-2" aria-hidden="true">

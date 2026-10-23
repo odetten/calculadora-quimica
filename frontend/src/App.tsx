@@ -74,6 +74,7 @@ function App() {
       <Splash />
       <Header
         isAuthenticated={isAuthenticated}
+        transparent={screen === 'landing'}
         onLoginClick={() => openAuth('login')}
         onProfileClick={() => {
           if (!isAuthenticated) {

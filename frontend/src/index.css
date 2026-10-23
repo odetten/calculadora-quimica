@@ -239,20 +239,53 @@ p {
   background: #f3f4f6;
 }
 
+/* Portada: desde md reproduce el frame de Figma de 1280×832 escalado a la pantalla.
+   --u equivale a 1px del frame; el frame se ancla abajo a la derecha porque las piezas
+   vienen recortadas contra esos bordes, y la sección sube 4rem para quedar bajo el header. */
+.ld-intro {
+  --u: min(100vh / 832, 100vw / 1280);
+}
+
+@media (width >= 48rem) {
+  .ld-intro {
+    height: calc(var(--u) * 832);
+    margin-top: -4rem;
+  }
+
+  .ld-intro-frame {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: calc(var(--u) * 1280);
+    height: calc(var(--u) * 832);
+    min-height: 0;
+    padding: 0;
+  }
+
+  .ld-intro-copy {
+    position: absolute;
+    left: calc(var(--u) * 110);
+    top: calc(var(--u) * 479);
+  }
+
+  .ld-intro-title {
+    font-size: calc(var(--u) * 72);
+    line-height: calc(var(--u) * 72.7);
+  }
+
+  /* Alto fijo por renglón: el pb-1 de cada palabra no debe separar más las líneas */
+  .ld-intro-title > span {
+    height: calc(var(--u) * 72.7);
+  }
+
+  .ld-intro-cta {
+    margin-top: calc(var(--u) * 36);
+  }
+}
+
 .ld-word {
   transform: translateY(110%);
   animation: ld-word-in 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
-}
-
-.ld-shimmer {
-  background: linear-gradient(100deg, #0f766e 20%, #07c7b0 45%, #0f766e 70%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation:
-    ld-word-in 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
-    ld-shine 3.5s 1.2s linear infinite;
 }
 
 .ld-rise {
@@ -313,11 +346,6 @@ p {
   to { transform: translateY(0) rotate(0); }
 }
 
-@keyframes ld-shine {
-  from { background-position: 250% 0; }
-  to { background-position: -150% 0; }
-}
-
 @keyframes ld-cta-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgb(7 199 176 / 55%); }
   50% { box-shadow: 0 0 0 14px rgb(7 199 176 / 0%); }
@@ -347,7 +375,6 @@ p {
   .ld-cta, .ld-bubble, .ld-float, .ld-glow, .ld-wave, .ld-ticker { animation: none; }
   .ld-bubble { display: none; }
   .ld-word, .ld-rise { animation: none; opacity: 1; transform: none; }
-  .ld-shimmer { animation: none; }
   .ld-reveal { opacity: 1; transform: none; transition: none; }
 }
 
