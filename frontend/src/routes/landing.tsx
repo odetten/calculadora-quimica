@@ -347,7 +347,7 @@ export function LandingPage({ onStart, onNavigate }: { onStart: () => void; onNa
     <>
       <section aria-label="Presentación" className="ld-intro relative isolate overflow-hidden bg-white text-[#1E1C2E]">
         <div className="ld-intro-frame flex min-h-[calc(100vh-4rem)] items-center px-6 py-16 sm:px-10">
-          <div className="pointer-events-none absolute inset-0 hidden select-none md:block" aria-hidden="true">
+          <div className="ld-intro-art pointer-events-none absolute inset-0 hidden select-none md:block" aria-hidden="true">
             {heroArt.map((piece) => (
               <img
                 key={piece.src}

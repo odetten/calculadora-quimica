@@ -252,25 +252,31 @@ p {
     margin-top: -4rem;
   }
 
+  /* El marco ocupa todo el ancho para que el texto se mida desde la izquierda de la pantalla */
   .ld-intro-frame {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    width: calc(var(--u) * 1280);
-    height: calc(var(--u) * 832);
+    inset: 0;
     min-height: 0;
     padding: 0;
   }
 
+  /* Las ilustraciones conservan el lienzo de Figma pegado a la derecha */
+  .ld-intro-art {
+    left: auto;
+    width: calc(var(--u) * 1280);
+  }
+
   .ld-intro-copy {
     position: absolute;
-    left: calc(var(--u) * 110);
-    top: calc(var(--u) * 479);
+    left: calc(var(--u) * 113);
+    top: calc(var(--u) * 480.5);
   }
 
   .ld-intro-title {
     font-size: calc(var(--u) * 72);
+    font-weight: 700;
     line-height: calc(var(--u) * 72.7);
+    letter-spacing: -0.06em;
   }
 
   /* Alto fijo por renglón: el pb-1 de cada palabra no debe separar más las líneas */
